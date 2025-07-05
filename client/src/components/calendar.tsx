@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import { ChevronLeft, ChevronRight, Download, AlertTriangle } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Download, AlertTriangle, X } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
 import { useDutyScheduler } from '@/hooks/use-duty-scheduler';
@@ -15,6 +15,7 @@ interface CalendarProps {
   teamFilters: Record<string, boolean>;
   onMonthChange: (month: string) => void;
   onBookDay: (date: string) => void;
+  onCancelBooking?: (date: string) => void;
 }
 
 export function Calendar({ 
@@ -24,7 +25,8 @@ export function Calendar({
   currentUser, 
   teamFilters, 
   onMonthChange,
-  onBookDay 
+  onBookDay,
+  onCancelBooking 
 }: CalendarProps) {
   const { toast } = useToast();
   const { useExportSchedule } = useDutyScheduler();
@@ -130,7 +132,7 @@ export function Calendar({
     yellow: { bg: 'bg-yellow-500', light: 'bg-yellow-100', border: 'border-yellow-500' },
   };
 
-  const handleDayClick = (date: string) => {
+  const handleDayClick = (date: string, event: React.MouseEvent) => {
     if (!isWeekend(date)) {
       toast({
         title: "Invalid selection",
@@ -140,7 +142,14 @@ export function Calendar({
       return;
     }
     
-    onBookDay(date);
+    // Check if user has existing booking for this date
+    const userBooking = getUserBookingForDate(date);
+    if (userBooking && event.shiftKey && onCancelBooking) {
+      // Shift+click to cancel booking
+      onCancelBooking(date);
+    } else {
+      onBookDay(date);
+    }
   };
 
   const days = getDaysInMonth(currentMonth);
@@ -210,7 +219,7 @@ export function Calendar({
               const isWeekendDay = isWeekend(day.date);
               const isTodayDate = isToday(day.date);
               
-              let dayClass = 'relative h-16 p-2 rounded-lg border-2 ';
+              let dayClass = 'relative h-20 p-2 rounded-lg border-2 transition-all duration-200 ';
               
               if (!isWeekendDay) {
                 dayClass += 'bg-gray-50 opacity-50 cursor-not-allowed ';
@@ -218,12 +227,12 @@ export function Calendar({
                 const color = getTeamMemberColor(assignedUser);
                 const colors = colorClasses[color as keyof typeof colorClasses];
                 if (teamFilters[assignedUser] !== false) {
-                  dayClass += `${colors.light} ${colors.border} hover:bg-gray-50 cursor-pointer `;
+                  dayClass += `${colors.light} ${colors.border} hover:shadow-lg hover:scale-105 cursor-pointer `;
                 } else {
-                  dayClass += 'bg-gray-50 border-gray-300 hover:bg-gray-50 cursor-pointer ';
+                  dayClass += 'bg-gray-50 border-gray-300 hover:bg-gray-100 cursor-pointer ';
                 }
               } else {
-                dayClass += 'bg-gray-50 border-gray-300 hover:bg-gray-100 cursor-pointer ';
+                dayClass += 'bg-white border-gray-300 hover:border-blue-400 hover:shadow-md hover:scale-105 cursor-pointer ';
               }
               
               if (isTodayDate) {
@@ -233,7 +242,7 @@ export function Calendar({
               return (
                 <button
                   key={day.date}
-                  onClick={() => handleDayClick(day.date)}
+                  onClick={(e) => handleDayClick(day.date, e)}
                   className={dayClass}
                   disabled={!isWeekendDay}
                 >
@@ -255,10 +264,13 @@ export function Calendar({
                     <div className="absolute top-1 right-1 w-3 h-3 bg-gray-300 rounded-full border-2 border-white"></div>
                   )}
                   
-                  {/* User avatar */}
+                  {/* User avatar and name */}
                   {assignedUser && teamFilters[assignedUser] !== false && (
-                    <div className="absolute bottom-1 left-1 w-4 h-4 bg-current rounded-full flex items-center justify-center">
-                      <span className="text-white text-xs font-medium">{getInitial(assignedUser)}</span>
+                    <div className="absolute bottom-1 left-1">
+                      <div className={`w-6 h-6 ${colorClasses[getTeamMemberColor(assignedUser) as keyof typeof colorClasses]?.bg} rounded-full flex items-center justify-center shadow-sm`}>
+                        <span className="text-white text-xs font-medium">{getInitial(assignedUser)}</span>
+                      </div>
+                      <div className="text-xs text-gray-600 mt-1 max-w-12 truncate">{assignedUser}</div>
                     </div>
                   )}
                 </button>
@@ -268,13 +280,24 @@ export function Calendar({
           
           {/* Calendar Footer */}
           <div className="mt-6 pt-6 border-t border-gray-200">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between mb-4">
               <div className="text-sm text-gray-600">
                 <span className="font-medium">Total Weekend Days:</span> {totalWeekendDays} days
               </div>
               <div className="text-sm text-gray-600">
                 <span className="font-medium">Assigned:</span> {assignedDays} days
               </div>
+            </div>
+            
+            {/* Quick Help */}
+            <div className="bg-blue-50 p-3 rounded-lg">
+              <h4 className="text-sm font-medium text-blue-900 mb-2">How to use:</h4>
+              <ul className="text-xs text-blue-700 space-y-1">
+                <li>• Click any weekend day to book your duty</li>
+                <li>• Shift+click on your booked days to cancel</li>
+                <li>• Use team filters to show/hide member assignments</li>
+                <li>• You can book any 2 weekend days per month</li>
+              </ul>
             </div>
           </div>
         </CardContent>

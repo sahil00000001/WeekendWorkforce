@@ -91,7 +91,16 @@ This is a comprehensive Weekend Duty Management System built for a 4-person SaaS
 
 ```
 Changelog:
-- July 05, 2025. Initial setup
+- July 05, 2025. Initial setup with complete weekend duty scheduler
+- July 05, 2025. Enhanced UI with interactive features:
+  * Fixed query client to properly handle month parameters in API calls
+  * Added user switching functionality (click user icon to switch between team members)
+  * Improved calendar with larger day cells (h-20), hover effects, and visual feedback
+  * Enhanced team member display with booking status and improved avatars
+  * Added cancel booking feature (Shift+click on your booked days)
+  * Implemented better visual indicators for team member assignments
+  * Added helpful usage instructions in calendar footer
+  * Made interface more interactive with transitions and hover states
 ```
 
 ## User Preferences

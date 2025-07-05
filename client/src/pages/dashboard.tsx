@@ -8,9 +8,9 @@ import { Skeleton } from '@/components/ui/skeleton';
 
 export default function Dashboard() {
   const { toast } = useToast();
-  const { useTeamMembers, useMonthlySchedule, useBookDay } = useDutyScheduler();
+  const { useTeamMembers, useMonthlySchedule, useBookDay, useCancelBooking } = useDutyScheduler();
   
-  const [currentUser] = useState('Srishti'); // In a real app, this would come from auth
+  const [currentUser, setCurrentUser] = useState('Srishti'); // In a real app, this would come from auth
   const [currentMonth, setCurrentMonth] = useState(() => {
     const now = new Date();
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
@@ -20,6 +20,7 @@ export default function Dashboard() {
   const teamMembersQuery = useTeamMembers();
   const monthlyScheduleQuery = useMonthlySchedule(currentMonth);
   const bookDayMutation = useBookDay();
+  const cancelBookingMutation = useCancelBooking();
 
   const handleToggleFilter = (userId: string) => {
     setTeamFilters(prev => ({
@@ -44,18 +45,40 @@ export default function Dashboard() {
     }
   };
 
-  const handleLogout = () => {
-    // In a real app, this would handle logout
+  const handleCancelBooking = async (date: string) => {
+    try {
+      await cancelBookingMutation.mutateAsync({ userId: currentUser, date });
+      toast({
+        title: "Booking cancelled",
+        description: `Successfully cancelled booking for ${new Date(date).toLocaleDateString()}`,
+      });
+    } catch (error) {
+      toast({
+        title: "Cancellation failed",
+        description: (error as Error).message,
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleSwitchUser = () => {
+    // Switch to different user for demo purposes
+    const users = ['Srishti', 'Aakash', 'Ashish', 'Sahil'];
+    const currentIndex = users.indexOf(currentUser);
+    const nextUser = users[(currentIndex + 1) % users.length];
+    
+    setCurrentUser(nextUser);
+    
     toast({
-      title: "Logout",
-      description: "Logout functionality would be implemented here",
+      title: "Switched User",
+      description: `Now viewing as ${nextUser}`,
     });
   };
 
   if (teamMembersQuery.isLoading || monthlyScheduleQuery.isLoading) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <Header currentUser={currentUser} userColor="purple" onLogout={handleLogout} />
+        <Header currentUser={currentUser} userColor="purple" onLogout={handleSwitchUser} />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
             <div className="lg:col-span-1 space-y-6">
@@ -99,7 +122,7 @@ export default function Dashboard() {
       <Header 
         currentUser={currentUser} 
         userColor={currentUserColor} 
-        onLogout={handleLogout} 
+        onLogout={handleSwitchUser} 
       />
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -123,6 +146,7 @@ export default function Dashboard() {
               teamFilters={teamFilters}
               onMonthChange={setCurrentMonth}
               onBookDay={handleBookDay}
+              onCancelBooking={handleCancelBooking}
             />
           </div>
         </div>

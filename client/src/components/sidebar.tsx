@@ -40,29 +40,33 @@ export function Sidebar({
           <CardTitle className="text-lg font-semibold">Team Members</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-3">
+          <div className="space-y-4">
             {teamMembers.map((member) => {
               const colors = colorClasses[member.color as keyof typeof colorClasses];
               const isActive = teamFilters[member.name] ?? true;
+              const memberStatus = userStatuses.find(status => status.userId === member.name);
               
               return (
-                <div key={member.name} className="flex items-center justify-between">
+                <div key={member.name} className="flex items-center justify-between p-2 rounded-lg hover:bg-gray-50 transition-colors">
                   <div className="flex items-center space-x-3">
-                    <div className={`w-10 h-10 ${colors.bg} rounded-full flex items-center justify-center`}>
-                      <span className="text-white font-medium">{getInitial(member.name)}</span>
+                    <div className={`w-12 h-12 ${colors.bg} rounded-full flex items-center justify-center shadow-sm`}>
+                      <span className="text-white font-medium text-lg">{getInitial(member.name)}</span>
                     </div>
                     <div>
                       <div className="text-sm font-medium text-gray-900">{member.name}</div>
                       <div className="text-xs text-gray-500">Priority {member.priority}</div>
+                      <div className="text-xs text-gray-400">
+                        {memberStatus?.confirmedDays || 0}/2 days booked
+                      </div>
                     </div>
                   </div>
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={() => onToggleFilter(member.name)}
-                    className={`w-6 h-6 p-0 rounded ${isActive ? `${colors.bg} ${colors.border}` : 'border-gray-300'}`}
+                    className={`w-8 h-8 p-0 rounded transition-all ${isActive ? `${colors.bg} ${colors.border}` : 'border-gray-300 hover:border-gray-400'}`}
                   >
-                    {isActive && <Check className="w-3 h-3 text-white" />}
+                    {isActive && <Check className="w-4 h-4 text-white" />}
                   </Button>
                 </div>
               );
