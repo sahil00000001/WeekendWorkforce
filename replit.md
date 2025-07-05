@@ -110,6 +110,14 @@ Changelog:
   * Enhanced booking status displays with colored backgrounds and better visual hierarchy
   * Updated legend with modern iconography and smooth hover transitions
   * Applied gradient background to main dashboard for depth and visual appeal
+- July 05, 2025. Implemented privacy controls and Excel export:
+  * Added individual access keys for each team member (SRISHTI_2025_SECURE, etc.)
+  * Created secure authentication system with login page and access key validation
+  * Protected all API endpoints with authentication middleware
+  * Added beautiful Excel export functionality with multiple sheets (Schedule, Summary, Conflicts)
+  * Implemented logout functionality and session management
+  * Enhanced header with Export Excel button and logout controls
+  * Ensured users can only book/cancel their own appointments for privacy
 ```
 
 ## User Preferences

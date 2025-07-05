@@ -20,6 +20,10 @@ export interface IStorage {
   getTeamMember(name: string): Promise<TeamMember | undefined>;
   createTeamMember(member: InsertTeamMember): Promise<TeamMember>;
   
+  // Authentication
+  validateAccessKey(accessKey: string): Promise<TeamMember | null>;
+  getUserByAccessKey(accessKey: string): Promise<TeamMember | null>;
+  
   // Bookings
   getBookings(month: string): Promise<Booking[]>;
   getUserBookings(userId: string, month: string): Promise<Booking[]>;
@@ -57,10 +61,10 @@ export class MemStorage implements IStorage {
 
   private async initializeTeamMembers() {
     const defaultMembers: InsertTeamMember[] = [
-      { name: 'Srishti', priority: 1, color: 'purple', isActive: true },
-      { name: 'Aakash', priority: 2, color: 'blue', isActive: true },
-      { name: 'Ashish', priority: 3, color: 'green', isActive: true },
-      { name: 'Sahil', priority: 4, color: 'yellow', isActive: true }
+      { name: 'Srishti', priority: 1, color: 'purple', isActive: true, accessKey: 'SRISHTI_2025_SECURE' },
+      { name: 'Aakash', priority: 2, color: 'blue', isActive: true, accessKey: 'AAKASH_2025_SECURE' },
+      { name: 'Ashish', priority: 3, color: 'green', isActive: true, accessKey: 'ASHISH_2025_SECURE' },
+      { name: 'Sahil', priority: 4, color: 'yellow', isActive: true, accessKey: 'SAHIL_2025_SECURE' }
     ];
 
     for (const member of defaultMembers) {
@@ -77,9 +81,23 @@ export class MemStorage implements IStorage {
   }
 
   async createTeamMember(member: InsertTeamMember): Promise<TeamMember> {
-    const teamMember: TeamMember = { ...member, id: this.currentId++ };
+    const teamMember: TeamMember = { 
+      ...member, 
+      id: this.currentId++,
+      isActive: member.isActive ?? true
+    };
     this.teamMembersMap.set(member.name, teamMember);
     return teamMember;
+  }
+
+  async validateAccessKey(accessKey: string): Promise<TeamMember | null> {
+    const members = Array.from(this.teamMembersMap.values());
+    const member = members.find(m => m.accessKey === accessKey);
+    return member || null;
+  }
+
+  async getUserByAccessKey(accessKey: string): Promise<TeamMember | null> {
+    return this.validateAccessKey(accessKey);
   }
 
   async getBookings(month: string): Promise<Booking[]> {
@@ -93,7 +111,12 @@ export class MemStorage implements IStorage {
   }
 
   async createBooking(booking: InsertBooking): Promise<Booking> {
-    const newBooking: Booking = { ...booking, id: this.currentId++ };
+    const newBooking: Booking = { 
+      ...booking, 
+      id: this.currentId++,
+      isConfirmed: booking.isConfirmed ?? false,
+      isConflicted: booking.isConflicted ?? false
+    };
     this.bookingsMap.set(newBooking.id, newBooking);
     return newBooking;
   }

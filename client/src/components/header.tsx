@@ -1,12 +1,14 @@
-import { Calendar, Users } from 'lucide-react';
+import { Calendar, Users, Download, LogOut } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 interface HeaderProps {
   currentUser: string;
   userColor: string;
   onLogout?: () => void;
+  onExportExcel?: () => void;
 }
 
-export function Header({ currentUser, userColor, onLogout }: HeaderProps) {
+export function Header({ currentUser, userColor, onLogout, onExportExcel }: HeaderProps) {
   const getInitial = (name: string) => name.charAt(0).toUpperCase();
   
   const colorClasses = {
@@ -30,6 +32,17 @@ export function Header({ currentUser, userColor, onLogout }: HeaderProps) {
             </div>
           </div>
           <div className="flex items-center space-x-4">
+            {onExportExcel && (
+              <Button
+                onClick={onExportExcel}
+                variant="outline"
+                size="sm"
+                className="bg-white/10 border-white/20 text-white hover:bg-white/20 hover:text-white"
+              >
+                <Download className="w-4 h-4 mr-2" />
+                Export Excel
+              </Button>
+            )}
             <div className="flex items-center space-x-3 bg-white/10 px-4 py-2 rounded-full">
               <div className={`w-10 h-10 ${colorClasses[userColor as keyof typeof colorClasses]} rounded-full flex items-center justify-center shadow-lg border-2 border-white/20`}>
                 <span className="text-white text-sm font-bold">{getInitial(currentUser)}</span>
@@ -40,9 +53,9 @@ export function Header({ currentUser, userColor, onLogout }: HeaderProps) {
               <button 
                 onClick={onLogout}
                 className="text-white/80 hover:text-white p-3 rounded-full hover:bg-white/10 transition-all duration-200"
-                title="Switch User"
+                title="Logout"
               >
-                <Users className="w-5 h-5" />
+                <LogOut className="w-5 h-5" />
               </button>
             )}
           </div>

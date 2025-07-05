@@ -4,13 +4,15 @@ import { Sidebar } from '@/components/sidebar';
 import { Calendar } from '@/components/calendar';
 import { useToast } from '@/hooks/use-toast';
 import { useDutyScheduler } from '@/hooks/use-duty-scheduler';
+import { useAuth } from '@/hooks/use-auth';
 import { Skeleton } from '@/components/ui/skeleton';
 
 export default function Dashboard() {
   const { toast } = useToast();
+  const { user, logout, accessKey } = useAuth();
   const { useTeamMembers, useMonthlySchedule, useBookDay, useCancelBooking } = useDutyScheduler();
   
-  const [currentUser, setCurrentUser] = useState('Srishti'); // In a real app, this would come from auth
+  const currentUser = user?.name || 'Unknown';
   const [currentMonth, setCurrentMonth] = useState(() => {
     const now = new Date();
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
@@ -61,24 +63,48 @@ export default function Dashboard() {
     }
   };
 
-  const handleSwitchUser = () => {
-    // Switch to different user for demo purposes
-    const users = ['Srishti', 'Aakash', 'Ashish', 'Sahil'];
-    const currentIndex = users.indexOf(currentUser);
-    const nextUser = users[(currentIndex + 1) % users.length];
-    
-    setCurrentUser(nextUser);
-    
-    toast({
-      title: "Switched User",
-      description: `Now viewing as ${nextUser}`,
-    });
+  const handleExportExcel = async () => {
+    try {
+      const headers: Record<string, string> = {};
+      if (accessKey) headers["X-Access-Key"] = accessKey;
+
+      const response = await fetch(`/api/export/${currentMonth}`, {
+        headers,
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to export Excel file');
+      }
+
+      // Create blob and download
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `Weekend_Duty_Schedule_${currentMonth}.xlsx`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+
+      toast({
+        title: "Export Successful",
+        description: `Excel file for ${currentMonth} has been downloaded`,
+      });
+    } catch (error) {
+      toast({
+        title: "Export Failed",
+        description: (error as Error).message,
+        variant: "destructive",
+      });
+    }
   };
 
   if (teamMembersQuery.isLoading || monthlyScheduleQuery.isLoading) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <Header currentUser={currentUser} userColor="purple" onLogout={handleSwitchUser} />
+        <Header currentUser={currentUser} userColor={user?.color || "purple"} onLogout={logout} onExportExcel={handleExportExcel} />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
             <div className="lg:col-span-1 space-y-6">
@@ -122,7 +148,8 @@ export default function Dashboard() {
       <Header 
         currentUser={currentUser} 
         userColor={currentUserColor} 
-        onLogout={handleSwitchUser} 
+        onLogout={logout}
+        onExportExcel={handleExportExcel}
       />
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">

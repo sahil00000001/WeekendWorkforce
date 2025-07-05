@@ -3,15 +3,64 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { z } from "zod";
 import { insertBookingSchema, type BookingRequest } from "@shared/schema";
+import * as XLSX from 'xlsx';
 
 const bookingRequestSchema = z.object({
   userId: z.string().min(1),
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/)
 });
 
+// Authentication middleware
+const authenticateAccessKey = async (req: any, res: any, next: any) => {
+  const accessKey = req.headers['x-access-key'];
+  if (!accessKey) {
+    return res.status(401).json({ error: 'Access key required' });
+  }
+  
+  const user = await storage.validateAccessKey(accessKey);
+  if (!user) {
+    return res.status(401).json({ error: 'Invalid access key' });
+  }
+  
+  req.user = user;
+  next();
+};
+
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Get team members
-  app.get("/api/team-members", async (req, res) => {
+  // Public route to display access keys (for initial setup)
+  app.get('/api/access-keys', async (req, res) => {
+    try {
+      const members = await storage.getTeamMembers();
+      const keys = members.map(member => ({
+        name: member.name,
+        accessKey: member.accessKey
+      }));
+      res.json(keys);
+    } catch (error) {
+      console.error('Error fetching access keys:', error);
+      res.status(500).json({ error: 'Failed to fetch access keys' });
+    }
+  });
+
+  // Authentication validation endpoint
+  app.post('/api/auth/validate', async (req, res) => {
+    try {
+      const { accessKey } = req.body;
+      const user = await storage.validateAccessKey(accessKey);
+      
+      if (user) {
+        res.json({ valid: true, user: { name: user.name, color: user.color } });
+      } else {
+        res.json({ valid: false });
+      }
+    } catch (error) {
+      console.error('Error validating access key:', error);
+      res.status(500).json({ error: 'Failed to validate access key' });
+    }
+  });
+
+  // Protected team members route
+  app.get("/api/team-members", authenticateAccessKey, async (req, res) => {
     try {
       const teamMembers = await storage.getTeamMembers();
       res.json(teamMembers);
@@ -20,8 +69,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get monthly schedule
-  app.get("/api/schedule/:month", async (req, res) => {
+  // Get monthly schedule (protected)
+  app.get("/api/schedule/:month", authenticateAccessKey, async (req, res) => {
     try {
       const { month } = req.params;
       
@@ -37,10 +86,121 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Book a day
-  app.post("/api/bookings", async (req, res) => {
+  // Excel export endpoint
+  app.get("/api/export/:month", authenticateAccessKey, async (req, res) => {
+    try {
+      const { month } = req.params;
+      
+      // Validate month format (YYYY-MM)
+      if (!/^\d{4}-\d{2}$/.test(month)) {
+        return res.status(400).json({ message: "Invalid month format. Use YYYY-MM" });
+      }
+
+      const schedule = await storage.getMonthlySchedule(month);
+      const teamMembers = await storage.getTeamMembers();
+      
+      // Create Excel workbook
+      const wb = XLSX.utils.book_new();
+      
+      // Sheet 1: Monthly Schedule Overview
+      const scheduleData = [];
+      scheduleData.push(['Weekend Duty Schedule - ' + month]);
+      scheduleData.push(['Generated on: ' + new Date().toLocaleDateString()]);
+      scheduleData.push(['']);
+      scheduleData.push(['Date', 'Assigned To', 'Day of Week']);
+      
+      // Get all weekend dates for the month
+      const [year, monthNum] = month.split('-').map(Number);
+      const daysInMonth = new Date(year, monthNum, 0).getDate();
+      
+      for (let day = 1; day <= daysInMonth; day++) {
+        const date = new Date(year, monthNum - 1, day);
+        const dayOfWeek = date.getDay();
+        
+        // Only include weekends (Saturday = 6, Sunday = 0)
+        if (dayOfWeek === 0 || dayOfWeek === 6) {
+          const dateStr = date.toISOString().split('T')[0];
+          const assignedTo = schedule.assignments[dateStr] || 'Unassigned';
+          const dayName = dayOfWeek === 0 ? 'Sunday' : 'Saturday';
+          scheduleData.push([dateStr, assignedTo, dayName]);
+        }
+      }
+      
+      // Sheet 2: Team Member Summary
+      const summaryData = [];
+      summaryData.push(['Team Member Summary - ' + month]);
+      summaryData.push(['']);
+      summaryData.push(['Name', 'Priority', 'Confirmed Days', 'Conflicted Days', 'Remaining Days']);
+      
+      for (const status of schedule.userStatuses) {
+        const member = teamMembers.find(m => m.name === status.userId);
+        summaryData.push([
+          status.userId,
+          member?.priority || 'N/A',
+          status.confirmedDays,
+          status.conflictedDays,
+          status.remainingDays
+        ]);
+      }
+      
+      // Sheet 3: Conflicts (if any)
+      if (schedule.conflicts.length > 0) {
+        const conflictData = [];
+        conflictData.push(['Conflicts Resolution - ' + month]);
+        conflictData.push(['']);
+        conflictData.push(['Date', 'Winner', 'Losers']);
+        
+        for (const conflict of schedule.conflicts) {
+          conflictData.push([
+            conflict.date,
+            conflict.winner,
+            conflict.losers.join(', ')
+          ]);
+        }
+        
+        const conflictSheet = XLSX.utils.aoa_to_sheet(conflictData);
+        XLSX.utils.book_append_sheet(wb, conflictSheet, 'Conflicts');
+      }
+      
+      // Add sheets to workbook
+      const scheduleSheet = XLSX.utils.aoa_to_sheet(scheduleData);
+      const summarySheet = XLSX.utils.aoa_to_sheet(summaryData);
+      
+      // Style the headers
+      const headerStyle = {
+        font: { bold: true, color: { rgb: "FFFFFF" } },
+        fill: { fgColor: { rgb: "4472C4" } },
+        alignment: { horizontal: "center" }
+      };
+      
+      XLSX.utils.book_append_sheet(wb, scheduleSheet, 'Schedule');
+      XLSX.utils.book_append_sheet(wb, summarySheet, 'Summary');
+      
+      // Generate Excel file
+      const excelBuffer = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
+      
+      // Set headers for download
+      res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+      res.setHeader('Content-Disposition', `attachment; filename=Weekend_Duty_Schedule_${month}.xlsx`);
+      res.setHeader('Content-Length', excelBuffer.length);
+      
+      res.send(excelBuffer);
+    } catch (error) {
+      console.error('Error generating Excel:', error);
+      res.status(500).json({ message: "Failed to generate Excel file" });
+    }
+  });
+
+  // Book a day (protected)
+  app.post("/api/bookings", authenticateAccessKey, async (req: any, res) => {
     try {
       const validatedRequest = bookingRequestSchema.parse(req.body);
+      
+      // Ensure user can only book for themselves
+      if (validatedRequest.userId !== req.user.name) {
+        return res.status(403).json({ message: "You can only book for yourself" });
+      }
+      
       const result = await storage.processBookingRequest(validatedRequest);
       res.json(result);
     } catch (error) {
@@ -52,11 +212,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Cancel a booking
-  app.delete("/api/bookings/:userId/:date", async (req, res) => {
+  // Cancel a booking (protected)
+  app.delete("/api/bookings/:userId/:date", authenticateAccessKey, async (req: any, res) => {
     try {
       const { userId, date } = req.params;
       const month = date.substring(0, 7);
+      
+      // Ensure user can only cancel their own bookings
+      if (userId !== req.user.name) {
+        return res.status(403).json({ message: "You can only cancel your own bookings" });
+      }
       
       // Find the booking
       const userBookings = await storage.getUserBookings(userId, month);

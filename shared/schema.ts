@@ -8,6 +8,7 @@ export const teamMembers = pgTable("team_members", {
   priority: integer("priority").notNull(),
   color: text("color").notNull(),
   isActive: boolean("is_active").default(true),
+  accessKey: text("access_key").notNull().unique(),
 });
 
 export const bookings = pgTable("bookings", {

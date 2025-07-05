@@ -12,9 +12,15 @@ export async function apiRequest(
   url: string,
   data?: unknown | undefined,
 ): Promise<Response> {
+  const accessKey = localStorage.getItem("accessKey");
+  
+  const headers: Record<string, string> = {};
+  if (data) headers["Content-Type"] = "application/json";
+  if (accessKey) headers["X-Access-Key"] = accessKey;
+
   const res = await fetch(url, {
     method,
-    headers: data ? { "Content-Type": "application/json" } : {},
+    headers,
     body: data ? JSON.stringify(data) : undefined,
     credentials: "include",
   });
@@ -40,7 +46,12 @@ export const getQueryFn: <T>(options: {
       }
     }
     
+    const accessKey = localStorage.getItem("accessKey");
+    const headers: Record<string, string> = {};
+    if (accessKey) headers["X-Access-Key"] = accessKey;
+    
     const res = await fetch(url, {
+      headers,
       credentials: "include",
     });
 
