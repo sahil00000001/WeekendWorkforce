@@ -118,7 +118,7 @@ export default function Dashboard() {
   const currentUserColor = currentUserMember?.color || 'purple';
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
       <Header 
         currentUser={currentUser} 
         userColor={currentUserColor} 

@@ -161,54 +161,80 @@ export function Calendar({
   const hasActiveConflicts = monthlySchedule.conflicts.length > 0;
 
   return (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <h2 className="text-2xl font-semibold text-gray-900">{getMonthName(currentMonth)}</h2>
-              <div className="flex items-center space-x-1">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => navigateMonth('prev')}
-                  className="p-2 hover:bg-gray-100"
-                >
-                  <ChevronLeft className="w-4 h-4 text-gray-500" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => navigateMonth('next')}
-                  className="p-2 hover:bg-gray-100"
-                >
-                  <ChevronRight className="w-4 h-4 text-gray-500" />
-                </Button>
-              </div>
+    <div className="space-y-8">
+      {/* Modern Calendar Header */}
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center space-x-6">
+            {/* View Options */}
+            <div className="flex bg-gray-100 rounded-xl p-1">
+              <button className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium shadow-sm">
+                Month
+              </button>
+              <button className="px-4 py-2 text-gray-600 text-sm font-medium">
+                Week
+              </button>
+              <button className="px-4 py-2 text-gray-600 text-sm font-medium">
+                Day
+              </button>
             </div>
+            
+            {/* Month Navigation */}
+            <div className="flex items-center space-x-4">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigateMonth('prev')}
+                className="p-2 hover:bg-gray-100 rounded-xl"
+              >
+                <ChevronLeft className="w-5 h-5 text-gray-600" />
+              </Button>
+              <h2 className="text-2xl font-bold text-gray-900">{getMonthName(currentMonth)}</h2>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigateMonth('next')}
+                className="p-2 hover:bg-gray-100 rounded-xl"
+              >
+                <ChevronRight className="w-5 h-5 text-gray-600" />
+              </Button>
+            </div>
+            
+            <Button
+              variant="outline"
+              size="sm"
+              className="bg-blue-50 border-blue-200 text-blue-600 hover:bg-blue-100"
+            >
+              Today
+            </Button>
+          </div>
+          
+          <div className="flex items-center space-x-3">
             <Button
               onClick={handleExport}
               disabled={exportMutation.isPending}
-              className="bg-blue-600 hover:bg-blue-700"
+              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl shadow-sm"
             >
               <Download className="w-4 h-4 mr-2" />
-              Export Schedule
+              Export
             </Button>
           </div>
-        </CardHeader>
-        
-        <CardContent>
+        </div>
+      </div>
+
+      <Card className="border-0 shadow-sm rounded-2xl overflow-hidden">
+        <CardContent className="p-0">
           {/* Day Headers */}
-          <div className="grid grid-cols-7 gap-1 mb-4">
+          <div className="grid grid-cols-7 gap-px bg-gray-200 rounded-t-xl overflow-hidden">
             {dayNames.map(day => (
-              <div key={day} className="text-center text-sm font-medium text-gray-500 py-2">
+              <div key={day} className="bg-gray-50 text-center text-sm font-semibold text-gray-700 py-4">
                 {day}
               </div>
             ))}
           </div>
           
           {/* Calendar Grid */}
-          <div className="grid grid-cols-7 gap-1">
+          <div className="grid grid-cols-7 gap-px bg-gray-200">
             {days.map((day, index) => {
               if (!day.isCurrentMonth) {
                 return <div key={index} className="h-16"></div>;
@@ -219,24 +245,24 @@ export function Calendar({
               const isWeekendDay = isWeekend(day.date);
               const isTodayDate = isToday(day.date);
               
-              let dayClass = 'relative h-20 p-2 rounded-lg border-2 transition-all duration-200 ';
+              let dayClass = 'bg-white relative h-24 p-3 transition-all duration-300 ease-out border-0 ';
               
               if (!isWeekendDay) {
-                dayClass += 'bg-gray-50 opacity-50 cursor-not-allowed ';
+                dayClass += 'opacity-40 cursor-not-allowed ';
               } else if (assignedUser) {
                 const color = getTeamMemberColor(assignedUser);
                 const colors = colorClasses[color as keyof typeof colorClasses];
                 if (teamFilters[assignedUser] !== false) {
-                  dayClass += `${colors.light} ${colors.border} hover:shadow-lg hover:scale-105 cursor-pointer `;
+                  dayClass += `${colors.light} hover:shadow-lg hover:-translate-y-1 cursor-pointer group `;
                 } else {
-                  dayClass += 'bg-gray-50 border-gray-300 hover:bg-gray-100 cursor-pointer ';
+                  dayClass += 'hover:bg-gray-50 cursor-pointer ';
                 }
               } else {
-                dayClass += 'bg-white border-gray-300 hover:border-blue-400 hover:shadow-md hover:scale-105 cursor-pointer ';
+                dayClass += 'hover:bg-blue-50 hover:shadow-md hover:-translate-y-1 cursor-pointer group ';
               }
               
               if (isTodayDate) {
-                dayClass += 'ring-2 ring-blue-500 ';
+                dayClass += 'ring-2 ring-blue-400 ring-inset ';
               }
               
               return (
@@ -246,33 +272,40 @@ export function Calendar({
                   className={dayClass}
                   disabled={!isWeekendDay}
                 >
-                  <div className={`text-sm font-medium ${isTodayDate ? 'text-blue-600' : 'text-gray-900'}`}>
-                    {new Date(day.date).getDate()}
-                  </div>
-                  
-                  {/* Status indicators */}
-                  {userBooking && userBooking.isConfirmed && (
-                    <div className="absolute top-1 right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></div>
-                  )}
-                  {userBooking && userBooking.isConflicted && (
-                    <div className="absolute top-1 right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-white"></div>
-                  )}
-                  {!userBooking && assignedUser && (
-                    <div className="absolute top-1 right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></div>
-                  )}
-                  {!assignedUser && isWeekendDay && (
-                    <div className="absolute top-1 right-1 w-3 h-3 bg-gray-300 rounded-full border-2 border-white"></div>
-                  )}
-                  
-                  {/* User avatar and name */}
-                  {assignedUser && teamFilters[assignedUser] !== false && (
-                    <div className="absolute bottom-1 left-1">
-                      <div className={`w-6 h-6 ${colorClasses[getTeamMemberColor(assignedUser) as keyof typeof colorClasses]?.bg} rounded-full flex items-center justify-center shadow-sm`}>
-                        <span className="text-white text-xs font-medium">{getInitial(assignedUser)}</span>
-                      </div>
-                      <div className="text-xs text-gray-600 mt-1 max-w-12 truncate">{assignedUser}</div>
+                  <div className="flex flex-col h-full">
+                    <div className={`text-lg font-semibold mb-2 ${isTodayDate ? 'text-blue-600' : 'text-gray-900'}`}>
+                      {new Date(day.date).getDate()}
                     </div>
-                  )}
+                    
+                    {/* User assignment */}
+                    {assignedUser && teamFilters[assignedUser] !== false && (
+                      <div className="flex-1 flex flex-col justify-center items-center">
+                        <div className={`w-8 h-8 ${colorClasses[getTeamMemberColor(assignedUser) as keyof typeof colorClasses]?.bg} rounded-full flex items-center justify-center shadow-sm mb-1`}>
+                          <span className="text-white text-sm font-bold">{getInitial(assignedUser)}</span>
+                        </div>
+                        <div className="text-xs text-gray-600 font-medium">{assignedUser}</div>
+                      </div>
+                    )}
+                    
+                    {/* Available weekend indicator */}
+                    {!assignedUser && isWeekendDay && (
+                      <div className="flex-1 flex items-center justify-center">
+                        <div className="w-8 h-8 border-2 border-dashed border-gray-300 rounded-full flex items-center justify-center group-hover:border-blue-400 transition-colors">
+                          <span className="text-gray-400 text-xs font-bold group-hover:text-blue-500">+</span>
+                        </div>
+                      </div>
+                    )}
+                    
+                    {/* Status indicators */}
+                    <div className="absolute top-2 right-2">
+                      {userBooking && userBooking.isConfirmed && (
+                        <div className="w-3 h-3 bg-green-500 rounded-full shadow-sm"></div>
+                      )}
+                      {userBooking && userBooking.isConflicted && (
+                        <div className="w-3 h-3 bg-red-500 rounded-full shadow-sm"></div>
+                      )}
+                    </div>
+                  </div>
                 </button>
               );
             })}

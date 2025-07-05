@@ -101,6 +101,15 @@ Changelog:
   * Implemented better visual indicators for team member assignments
   * Added helpful usage instructions in calendar footer
   * Made interface more interactive with transitions and hover states
+- July 05, 2025. Major UI overhaul for smooth modern design:
+  * Redesigned header with gradient background and modern "Team Calendar" branding
+  * Implemented smooth calendar with gap-px grid layout and rounded corners
+  * Enhanced day cells with better spacing, improved hover animations, and clean typography
+  * Added glassmorphism effects to sidebar cards with backdrop-blur
+  * Improved team member cards with scale effects and rounded-xl design
+  * Enhanced booking status displays with colored backgrounds and better visual hierarchy
+  * Updated legend with modern iconography and smooth hover transitions
+  * Applied gradient background to main dashboard for depth and visual appeal
 ```
 
 ## User Preferences

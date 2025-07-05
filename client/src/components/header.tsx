@@ -17,24 +17,29 @@ export function Header({ currentUser, userColor, onLogout }: HeaderProps) {
   };
 
   return (
-    <header className="bg-white shadow-sm border-b border-gray-200">
+    <header className="bg-gradient-to-r from-blue-600 to-blue-700 shadow-lg">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
+        <div className="flex justify-between items-center h-20">
           <div className="flex items-center">
-            <Calendar className="text-blue-600 text-2xl mr-3" />
-            <h1 className="text-xl font-semibold text-gray-900">Weekend Duty Scheduler</h1>
+            <div className="bg-white/10 p-2 rounded-xl mr-4">
+              <Calendar className="text-white text-2xl" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold text-white">Team Calendar</h1>
+              <p className="text-blue-100 text-sm">Manage team tasks and schedules efficiently</p>
+            </div>
           </div>
           <div className="flex items-center space-x-4">
-            <div className="flex items-center space-x-2">
-              <div className={`w-8 h-8 ${colorClasses[userColor as keyof typeof colorClasses]} rounded-full flex items-center justify-center`}>
-                <span className="text-white text-sm font-medium">{getInitial(currentUser)}</span>
+            <div className="flex items-center space-x-3 bg-white/10 px-4 py-2 rounded-full">
+              <div className={`w-10 h-10 ${colorClasses[userColor as keyof typeof colorClasses]} rounded-full flex items-center justify-center shadow-lg border-2 border-white/20`}>
+                <span className="text-white text-sm font-bold">{getInitial(currentUser)}</span>
               </div>
-              <span className="text-gray-700 font-medium">{currentUser}</span>
+              <span className="text-white font-semibold">{currentUser}</span>
             </div>
             {onLogout && (
               <button 
                 onClick={onLogout}
-                className="text-gray-500 hover:text-gray-700 p-2 rounded-lg hover:bg-gray-100 transition-colors"
+                className="text-white/80 hover:text-white p-3 rounded-full hover:bg-white/10 transition-all duration-200"
                 title="Switch User"
               >
                 <Users className="w-5 h-5" />

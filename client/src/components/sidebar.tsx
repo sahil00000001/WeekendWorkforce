@@ -35,27 +35,27 @@ export function Sidebar({
   return (
     <div className="space-y-6">
       {/* Team Filter Section */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg font-semibold">Team Members</CardTitle>
+      <Card className="border-0 shadow-sm rounded-2xl bg-white/80 backdrop-blur-sm">
+        <CardHeader className="pb-4">
+          <CardTitle className="text-lg font-bold text-gray-900">Team Members</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
+          <div className="space-y-3">
             {teamMembers.map((member) => {
               const colors = colorClasses[member.color as keyof typeof colorClasses];
               const isActive = teamFilters[member.name] ?? true;
               const memberStatus = userStatuses.find(status => status.userId === member.name);
               
               return (
-                <div key={member.name} className="flex items-center justify-between p-2 rounded-lg hover:bg-gray-50 transition-colors">
-                  <div className="flex items-center space-x-3">
-                    <div className={`w-12 h-12 ${colors.bg} rounded-full flex items-center justify-center shadow-sm`}>
-                      <span className="text-white font-medium text-lg">{getInitial(member.name)}</span>
+                <div key={member.name} className="flex items-center justify-between p-3 rounded-xl hover:bg-white/60 transition-all duration-200 group">
+                  <div className="flex items-center space-x-4">
+                    <div className={`w-12 h-12 ${colors.bg} rounded-xl flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform`}>
+                      <span className="text-white font-bold text-lg">{getInitial(member.name)}</span>
                     </div>
                     <div>
-                      <div className="text-sm font-medium text-gray-900">{member.name}</div>
-                      <div className="text-xs text-gray-500">Priority {member.priority}</div>
-                      <div className="text-xs text-gray-400">
+                      <div className="text-sm font-bold text-gray-900">{member.name}</div>
+                      <div className="text-xs text-gray-500 font-medium">Priority {member.priority}</div>
+                      <div className="text-xs text-blue-600 font-semibold">
                         {memberStatus?.confirmedDays || 0}/2 days booked
                       </div>
                     </div>
@@ -64,9 +64,9 @@ export function Sidebar({
                     variant="outline"
                     size="sm"
                     onClick={() => onToggleFilter(member.name)}
-                    className={`w-8 h-8 p-0 rounded transition-all ${isActive ? `${colors.bg} ${colors.border}` : 'border-gray-300 hover:border-gray-400'}`}
+                    className={`w-10 h-10 p-0 rounded-xl border-2 transition-all duration-200 ${isActive ? `${colors.bg} ${colors.border} shadow-lg` : 'border-gray-300 hover:border-blue-400 hover:shadow-md'}`}
                   >
-                    {isActive && <Check className="w-4 h-4 text-white" />}
+                    {isActive && <Check className="w-5 h-5 text-white" />}
                   </Button>
                 </div>
               );
@@ -76,38 +76,38 @@ export function Sidebar({
       </Card>
 
       {/* Booking Status Card */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg font-semibold">Your Bookings</CardTitle>
+      <Card className="border-0 shadow-sm rounded-2xl bg-white/80 backdrop-blur-sm">
+        <CardHeader className="pb-4">
+          <CardTitle className="text-lg font-bold text-gray-900">Your Bookings</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-600">Confirmed Days</span>
-              <span className="font-semibold text-green-600">{currentUserStatus?.confirmedDays || 0}</span>
+            <div className="flex items-center justify-between p-3 bg-green-50 rounded-xl">
+              <span className="text-sm font-medium text-gray-700">Confirmed Days</span>
+              <span className="font-bold text-green-700 text-lg">{currentUserStatus?.confirmedDays || 0}</span>
             </div>
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-600">Conflicted Days</span>
-              <span className="font-semibold text-red-600">{currentUserStatus?.conflictedDays || 0}</span>
+            <div className="flex items-center justify-between p-3 bg-red-50 rounded-xl">
+              <span className="text-sm font-medium text-gray-700">Conflicted Days</span>
+              <span className="font-bold text-red-700 text-lg">{currentUserStatus?.conflictedDays || 0}</span>
             </div>
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-600">Remaining</span>
-              <span className="font-semibold text-gray-900">{currentUserStatus?.remainingDays || 2}</span>
+            <div className="flex items-center justify-between p-3 bg-blue-50 rounded-xl">
+              <span className="text-sm font-medium text-gray-700">Remaining</span>
+              <span className="font-bold text-blue-700 text-lg">{currentUserStatus?.remainingDays || 2}</span>
             </div>
             
             {confirmedBookings.length > 0 && (
-              <div className="pt-4 border-t border-gray-200">
-                <div className="text-sm text-gray-600 mb-2">Next Weekend Duties</div>
-                <div className="space-y-2">
+              <div className="pt-4 border-t border-gray-100">
+                <div className="text-sm font-medium text-gray-700 mb-3">Next Weekend Duties</div>
+                <div className="space-y-3">
                   {confirmedBookings.map((booking) => {
                     const date = new Date(booking.date);
                     const dayName = date.toLocaleDateString('en-US', { weekday: 'short' });
                     const dayMonth = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
                     
                     return (
-                      <div key={booking.id} className="flex items-center justify-between text-sm">
-                        <span>{dayMonth} ({dayName})</span>
-                        <Badge variant="outline" className="bg-green-100 text-green-800 border-green-300">
+                      <div key={booking.id} className="flex items-center justify-between p-2 bg-green-50 rounded-lg">
+                        <span className="text-sm font-medium text-gray-700">{dayMonth} ({dayName})</span>
+                        <Badge variant="outline" className="bg-green-100 text-green-800 border-green-300 shadow-sm">
                           <div className="w-2 h-2 bg-green-500 rounded-full mr-1"></div>
                           Confirmed
                         </Badge>
@@ -122,27 +122,29 @@ export function Sidebar({
       </Card>
 
       {/* Legend */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg font-semibold">Legend</CardTitle>
+      <Card className="border-0 shadow-sm rounded-2xl bg-white/80 backdrop-blur-sm">
+        <CardHeader className="pb-4">
+          <CardTitle className="text-lg font-bold text-gray-900">Legend</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-3">
-            <div className="flex items-center space-x-3">
-              <div className="w-6 h-6 bg-green-100 rounded border-2 border-green-500"></div>
-              <span className="text-sm text-gray-600">Confirmed Booking</span>
+          <div className="space-y-4">
+            <div className="flex items-center space-x-4 p-2 rounded-lg hover:bg-white/60 transition-colors">
+              <div className="w-8 h-8 bg-green-100 rounded-xl border-2 border-green-500 shadow-sm"></div>
+              <span className="text-sm font-medium text-gray-700">Confirmed Booking</span>
             </div>
-            <div className="flex items-center space-x-3">
-              <div className="w-6 h-6 bg-red-100 rounded border-2 border-red-500"></div>
-              <span className="text-sm text-gray-600">Conflicted Booking</span>
+            <div className="flex items-center space-x-4 p-2 rounded-lg hover:bg-white/60 transition-colors">
+              <div className="w-8 h-8 bg-red-100 rounded-xl border-2 border-red-500 shadow-sm"></div>
+              <span className="text-sm font-medium text-gray-700">Conflicted Booking</span>
             </div>
-            <div className="flex items-center space-x-3">
-              <div className="w-6 h-6 bg-gray-100 rounded border-2 border-gray-300"></div>
-              <span className="text-sm text-gray-600">Available Weekend</span>
+            <div className="flex items-center space-x-4 p-2 rounded-lg hover:bg-white/60 transition-colors">
+              <div className="w-8 h-8 bg-gray-100 rounded-xl border-2 border-dashed border-gray-400 shadow-sm flex items-center justify-center">
+                <span className="text-gray-500 text-xs font-bold">+</span>
+              </div>
+              <span className="text-sm font-medium text-gray-700">Available Weekend</span>
             </div>
-            <div className="flex items-center space-x-3">
-              <div className="w-6 h-6 bg-blue-100 rounded border-2 border-blue-500"></div>
-              <span className="text-sm text-gray-600">Today</span>
+            <div className="flex items-center space-x-4 p-2 rounded-lg hover:bg-white/60 transition-colors">
+              <div className="w-8 h-8 bg-blue-100 rounded-xl border-2 border-blue-500 shadow-sm"></div>
+              <span className="text-sm font-medium text-gray-700">Today</span>
             </div>
           </div>
         </CardContent>
