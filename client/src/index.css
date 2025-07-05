@@ -1,0 +1,143 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: hsl(0, 0%, 100%);
+  --foreground: hsl(20, 14.3%, 4.1%);
+  --muted: hsl(60, 4.8%, 95.9%);
+  --muted-foreground: hsl(25, 5.3%, 44.7%);
+  --popover: hsl(0, 0%, 100%);
+  --popover-foreground: hsl(20, 14.3%, 4.1%);
+  --card: hsl(0, 0%, 100%);
+  --card-foreground: hsl(20, 14.3%, 4.1%);
+  --border: hsl(20, 5.9%, 90%);
+  --input: hsl(20, 5.9%, 90%);
+  --primary: hsl(207, 90%, 54%);
+  --primary-foreground: hsl(211, 100%, 99%);
+  --secondary: hsl(60, 4.8%, 95.9%);
+  --secondary-foreground: hsl(24, 9.8%, 10%);
+  --accent: hsl(60, 4.8%, 95.9%);
+  --accent-foreground: hsl(24, 9.8%, 10%);
+  --destructive: hsl(0, 84.2%, 60.2%);
+  --destructive-foreground: hsl(60, 9.1%, 97.8%);
+  --ring: hsl(20, 14.3%, 4.1%);
+  --radius: 0.5rem;
+  
+  /* Custom colors for team members */
+  --srishti: hsl(266, 70%, 60%);
+  --aakash: hsl(217, 91%, 60%);
+  --ashish: hsl(142, 76%, 36%);
+  --sahil: hsl(45, 93%, 47%);
+}
+
+.dark {
+  --background: hsl(240, 10%, 3.9%);
+  --foreground: hsl(0, 0%, 98%);
+  --muted: hsl(240, 3.7%, 15.9%);
+  --muted-foreground: hsl(240, 5%, 64.9%);
+  --popover: hsl(240, 10%, 3.9%);
+  --popover-foreground: hsl(0, 0%, 98%);
+  --card: hsl(240, 10%, 3.9%);
+  --card-foreground: hsl(0, 0%, 98%);
+  --border: hsl(240, 3.7%, 15.9%);
+  --input: hsl(240, 3.7%, 15.9%);
+  --primary: hsl(207, 90%, 54%);
+  --primary-foreground: hsl(211, 100%, 99%);
+  --secondary: hsl(240, 3.7%, 15.9%);
+  --secondary-foreground: hsl(0, 0%, 98%);
+  --accent: hsl(240, 3.7%, 15.9%);
+  --accent-foreground: hsl(0, 0%, 98%);
+  --destructive: hsl(0, 62.8%, 30.6%);
+  --destructive-foreground: hsl(0, 0%, 98%);
+  --ring: hsl(240, 4.9%, 83.9%);
+  --radius: 0.5rem;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply font-sans antialiased bg-background text-foreground;
+  }
+}
+
+@layer components {
+  .calendar-day {
+    @apply relative h-16 p-2 rounded-lg border-2 transition-colors;
+  }
+  
+  .calendar-day:hover {
+    @apply bg-gray-50;
+  }
+  
+  .calendar-day.weekend {
+    @apply cursor-pointer;
+  }
+  
+  .calendar-day.weekday {
+    @apply bg-gray-50 opacity-50 cursor-not-allowed;
+  }
+  
+  .calendar-day.today {
+    @apply ring-2 ring-blue-500;
+  }
+  
+  .calendar-day.assigned-srishti {
+    @apply bg-purple-100 border-purple-500;
+  }
+  
+  .calendar-day.assigned-aakash {
+    @apply bg-blue-100 border-blue-500;
+  }
+  
+  .calendar-day.assigned-ashish {
+    @apply bg-green-100 border-green-500;
+  }
+  
+  .calendar-day.assigned-sahil {
+    @apply bg-yellow-100 border-yellow-500;
+  }
+  
+  .calendar-day.available {
+    @apply bg-gray-50 border-gray-300;
+  }
+  
+  .status-indicator {
+    @apply absolute top-1 right-1 w-3 h-3 rounded-full border-2 border-white;
+  }
+  
+  .status-indicator.confirmed {
+    @apply bg-green-500;
+  }
+  
+  .status-indicator.conflicted {
+    @apply bg-red-500;
+  }
+  
+  .status-indicator.available {
+    @apply bg-gray-300;
+  }
+  
+  .user-avatar {
+    @apply absolute bottom-1 left-1 w-4 h-4 rounded-full flex items-center justify-center;
+  }
+  
+  .user-avatar.srishti {
+    @apply bg-purple-600;
+  }
+  
+  .user-avatar.aakash {
+    @apply bg-blue-600;
+  }
+  
+  .user-avatar.ashish {
+    @apply bg-green-600;
+  }
+  
+  .user-avatar.sahil {
+    @apply bg-yellow-500;
+  }
+}
