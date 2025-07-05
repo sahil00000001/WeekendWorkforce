@@ -1,0 +1,139 @@
+# Weekend Duty Scheduler - Detailed System Prompt
+
+## System Overview
+Create a comprehensive Weekend Duty Management System for a 4-person SaaS team with flexible day booking, priority-based conflict resolution, and real-time scheduling coordination.
+
+## Core Requirements
+
+### Team Structure
+- **Team Members**: Srishti, Aakash, Ashish, Sahil (in priority order)
+- **Manager**: Full administrative access
+- **Priority System**: Srishti (1st) → Aakash (2nd) → Ashish (3rd) → Sahil (4th)
+
+### Booking System Logic
+1. **Flexible Day Selection**: Each team member can book ANY 2 weekend days (Saturday/Sunday) from the entire month
+2. **No Fixed Assignments**: Remove traditional "Weekend 1, 2, 3, 4" structure
+3. **Priority-Based Resolution**: When multiple people book the same day, highest priority wins
+4. **Monthly Limit**: Each person works exactly 2 days per month (can be any combination of Saturdays/Sundays)
+
+### User Experience Flow
+
+#### For Team Members (Srishti, Aakash, Ashish, Sahil):
+1. **Login** → See personal dashboard with booking status
+2. **Calendar View** → Full month calendar with weekend days highlighted
+3. **Day Booking** → Click any available weekend day to book it
+4. **Conflict Visualization** → See confirmed days vs. conflicted days
+5. **Status Tracking** → Real-time counter showing booked/confirmed/conflicts
+
+#### For Manager:
+1. **Full Access** → View all team member bookings and conflicts
+2. **Override Capability** → Manually assign/remove days if needed
+3. **Team Filters** → Show/hide specific team members' assignments
+4. **Export Functionality** → Download monthly schedules
+
+### Technical Implementation
+
+#### Frontend Features:
+1. **Colorful Calendar Interface**:
+   - Proper calendar layout with correct dates
+   - Color-coded by team member (Purple: Srishti, Blue: Aakash, Green: Ashish, Yellow: Sahil)
+   - Visual indicators for conflicts, confirmations, and available days
+
+2. **Interactive Day Booking**:
+   - Click-to-book functionality on weekend days only
+   - Hover effects and visual feedback
+   - Immediate status updates
+
+3. **Real-time Conflict Resolution**:
+   - Automatic priority processing
+   - Visual conflict indicators
+   - Clear winner/loser notifications
+
+#### Data Structure:
+```javascript
+// User Bookings - What each person requested
+userBookings: {
+  'Srishti': ['2024-12-07', '2024-12-15'],
+  'Aakash': ['2024-12-08', '2024-12-15'],  // Conflict on 15th
+  'Ashish': ['2024-12-14', '2024-12-21'],
+  'Sahil': ['2024-12-22', '2024-12-29']
+}
+
+// Final Schedule - After priority resolution
+finalSchedule: {
+  '2024-12-07': 'Srishti',
+  '2024-12-08': 'Aakash',
+  '2024-12-14': 'Ashish',
+  '2024-12-15': 'Srishti',  // Srishti wins conflict
+  '2024-12-21': 'Ashish',
+  '2024-12-22': 'Sahil',
+  '2024-12-29': 'Sahil'
+}
+```
+
+### Key Business Rules
+
+1. **Weekend Definition**: Only Saturday (dayOfWeek = 6) and Sunday (dayOfWeek = 0) are bookable
+2. **Monthly Allocation**: Each person gets exactly 2 days per month
+3. **Conflict Resolution**: Higher priority always wins contested days
+4. **Booking Limits**: Users cannot book more than 2 days total
+5. **Manager Override**: Manager can modify any assignment
+
+### Visual Design Requirements
+
+#### Calendar Display:
+- **Monthly grid layout** with proper date alignment
+- **Weekend highlighting** with distinct colors per team member
+- **Status indicators**: Confirmed (green ring), Conflicts (red ring), Available (gray)
+- **Today's date** highlighted with blue ring
+
+#### User Interface Elements:
+- **Avatar-based filters** for team members
+- **Booking status cards** showing confirmed/conflicted days
+- **Real-time counters** for booking progress
+- **Color-coded legend** for easy reference
+
+#### Responsive Design:
+- **Mobile-friendly** calendar interface
+- **Tablet-optimized** layout for manager view
+- **Desktop-enhanced** features for full functionality
+
+### Data Storage
+- **In-memory storage** during session (no database required)
+- **JSON export** capability for external storage
+- **Excel-compatible** format for reporting
+
+### Error Handling & Validation
+1. **Weekend-only booking** validation
+2. **Booking limit** enforcement
+3. **Permission checks** for user actions
+4. **Clear error messages** for invalid operations
+
+### Success Metrics
+- **Easy day selection** for team members
+- **Clear conflict resolution** based on priority
+- **Real-time updates** visible to all users
+- **Manager oversight** capabilities
+- **Export functionality** for record-keeping
+
+## Implementation Notes
+
+### Priority System Example:
+```
+Scenario: All 4 members want December 15th
+- Srishti: Books Dec 15th → Gets it (Priority 1)
+- Aakash: Books Dec 15th → Loses to Srishti
+- Ashish: Books Dec 15th → Loses to Srishti  
+- Sahil: Books Dec 15th → Loses to Srishti
+
+Result: Srishti works Dec 15th, others must pick different days
+```
+
+### User Experience Goals:
+- **Intuitive booking** process
+- **Clear visual feedback** for all actions
+- **Transparent conflict resolution**
+- **Professional, corporate-friendly** design
+- **Efficient team coordination**
+
+This system eliminates manual scheduling conflicts while maintaining fairness through a clear priority system and providing full transparency to all team members about their weekend duty assignments.
