@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import { ChevronLeft, ChevronRight, AlertTriangle, X } from 'lucide-react';
+import { ChevronLeft, ChevronRight, AlertTriangle, X, FileText } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
+import { TicketModal } from './ticket-modal';
 import type { TeamMember, MonthlySchedule, ConflictResolution } from '@shared/schema';
 
 interface CalendarProps {
@@ -28,6 +29,8 @@ export function Calendar({
   onCancelBooking 
 }: CalendarProps) {
   const { toast } = useToast();
+  const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [isTicketModalOpen, setIsTicketModalOpen] = useState(false);
 
   const getMonthName = (month: string) => {
     const date = new Date(month + '-01');
@@ -101,10 +104,18 @@ export function Calendar({
   };
 
   const handleDayClick = (date: string, event: React.MouseEvent) => {
+    // Right-click or Ctrl/Cmd+click for ticket management on any day
+    if (event.ctrlKey || event.metaKey || event.button === 2) {
+      event.preventDefault();
+      setSelectedDate(date);
+      setIsTicketModalOpen(true);
+      return;
+    }
+    
     if (!isWeekend(date)) {
       toast({
         title: "Invalid selection",
-        description: "Only weekend days can be booked",
+        description: "Only weekend days can be booked. Use Ctrl+click for ticket management on any day.",
         variant: "destructive",
       });
       return;
@@ -213,7 +224,7 @@ export function Calendar({
               let dayClass = 'bg-white relative h-24 p-3 transition-all duration-200 ease-out border-0 ';
               
               if (!isWeekendDay) {
-                dayClass += 'opacity-40 cursor-not-allowed ';
+                dayClass += 'opacity-60 cursor-pointer hover:bg-gray-50 ';
               } else if (assignedUser) {
                 const color = getTeamMemberColor(assignedUser);
                 const colors = colorClasses[color as keyof typeof colorClasses];
@@ -239,12 +250,21 @@ export function Calendar({
                 <button
                   key={day.date}
                   onClick={(e) => handleDayClick(day.date, e)}
+                  onContextMenu={(e) => {
+                    e.preventDefault();
+                    setSelectedDate(day.date);
+                    setIsTicketModalOpen(true);
+                  }}
                   className={dayClass}
-                  disabled={!isWeekendDay}
                 >
                   <div className="flex flex-col h-full overflow-hidden">
-                    <div className={`text-lg font-semibold mb-2 flex-shrink-0 ${isTodayDate ? 'text-blue-600' : 'text-gray-900'}`}>
-                      {new Date(day.date).getDate()}
+                    <div className="flex items-center justify-between mb-2 flex-shrink-0">
+                      <div className={`text-lg font-semibold ${isTodayDate ? 'text-blue-600' : 'text-gray-900'}`}>
+                        {new Date(day.date).getDate()}
+                      </div>
+                      {!isWeekendDay && (
+                        <FileText className="w-3 h-3 text-gray-400 opacity-50" />
+                      )}
                     </div>
                     
                     {/* User assignment */}
@@ -302,7 +322,8 @@ export function Calendar({
               <ul className="text-xs text-blue-700 space-y-1">
                 <li>• Click any weekend day to book your duty</li>
                 <li>• Click your booked days again to cancel them</li>
-                <li>• Use team filters to show/hide member assignments</li>
+                <li>• Ctrl+click any day to manage ticket details</li>
+                <li>• Right-click any day to open ticket management</li>
                 <li>• You can book any 2 weekend days per month</li>
               </ul>
             </div>
@@ -351,6 +372,17 @@ export function Calendar({
           </AlertDescription>
         </Alert>
       )}
+
+      {/* Ticket Management Modal */}
+      <TicketModal
+        isOpen={isTicketModalOpen}
+        onClose={() => {
+          setIsTicketModalOpen(false);
+          setSelectedDate(null);
+        }}
+        date={selectedDate || ''}
+        currentUser={currentUser}
+      />
     </div>
   );
 }

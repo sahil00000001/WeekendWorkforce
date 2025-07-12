@@ -2,12 +2,15 @@ import {
   teamMembers, 
   bookings, 
   finalSchedule,
+  tickets,
   type TeamMember, 
   type InsertTeamMember,
   type Booking,
   type InsertBooking,
   type FinalSchedule,
   type InsertFinalSchedule,
+  type Ticket,
+  type InsertTicket,
   type BookingRequest,
   type ConflictResolution,
   type UserBookingStatus,
@@ -36,6 +39,12 @@ export interface IStorage {
   setFinalSchedule(schedule: InsertFinalSchedule): Promise<FinalSchedule>;
   deleteFinalSchedule(date: string): Promise<void>;
   
+  // Tickets
+  getTickets(date: string): Promise<Ticket[]>;
+  createTicket(ticket: InsertTicket): Promise<Ticket>;
+  updateTicket(id: number, updates: Partial<InsertTicket>): Promise<Ticket>;
+  deleteTicket(id: number): Promise<void>;
+
   // Business Logic
   processBookingRequest(request: BookingRequest): Promise<{ success: boolean; conflicts?: ConflictResolution[] }>;
   getMonthlySchedule(month: string): Promise<MonthlySchedule>;
@@ -47,12 +56,14 @@ export class MemStorage implements IStorage {
   private teamMembersMap: Map<string, TeamMember>;
   private bookingsMap: Map<number, Booking>;
   private finalScheduleMap: Map<string, FinalSchedule>;
+  private ticketsMap: Map<number, Ticket>;
   private currentId: number;
 
   constructor() {
     this.teamMembersMap = new Map();
     this.bookingsMap = new Map();
     this.finalScheduleMap = new Map();
+    this.ticketsMap = new Map();
     this.currentId = 1;
     
     // Initialize default team members
@@ -146,6 +157,43 @@ export class MemStorage implements IStorage {
 
   async deleteFinalSchedule(date: string): Promise<void> {
     this.finalScheduleMap.delete(date);
+  }
+
+  // Ticket Methods
+  async getTickets(date: string): Promise<Ticket[]> {
+    return Array.from(this.ticketsMap.values()).filter(ticket => ticket.date === date);
+  }
+
+  async createTicket(ticket: InsertTicket): Promise<Ticket> {
+    const newTicket: Ticket = {
+      ...ticket,
+      id: this.currentId++,
+      ticketIds: ticket.ticketIds || [],
+      notes: ticket.notes || null,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    this.ticketsMap.set(newTicket.id, newTicket);
+    return newTicket;
+  }
+
+  async updateTicket(id: number, updates: Partial<InsertTicket>): Promise<Ticket> {
+    const existingTicket = this.ticketsMap.get(id);
+    if (!existingTicket) {
+      throw new Error('Ticket not found');
+    }
+    
+    const updatedTicket: Ticket = {
+      ...existingTicket,
+      ...updates,
+      updatedAt: new Date()
+    };
+    this.ticketsMap.set(id, updatedTicket);
+    return updatedTicket;
+  }
+
+  async deleteTicket(id: number): Promise<void> {
+    this.ticketsMap.delete(id);
   }
 
   private isWeekend(date: string): boolean {

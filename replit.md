@@ -28,6 +28,7 @@ This is a comprehensive Weekend Duty Management System built for a 4-person SaaS
 - **team_members**: Stores team member information with priority levels and color coding
 - **bookings**: Tracks individual booking requests with conflict flags
 - **final_schedule**: Stores the resolved monthly schedule after conflict resolution
+- **tickets**: Stores ticket details for any calendar date with SLA tracking and status management
 
 ### Core Business Logic
 - **Priority System**: Shrishti (1st) → Aakash (2nd) → Ashish (3rd) → Sahil (4th)
@@ -36,10 +37,11 @@ This is a comprehensive Weekend Duty Management System built for a 4-person SaaS
 - **Real-time Updates**: Immediate UI updates using React Query mutations
 
 ### Frontend Components
-- **Calendar Component**: Interactive monthly calendar with click-to-book functionality
+- **Calendar Component**: Interactive monthly calendar with click-to-book functionality and ticket management
 - **Sidebar**: Team member filters and booking status tracking
 - **Header**: User authentication display and navigation
 - **Dashboard**: Main application view combining all components
+- **Ticket Modal**: Comprehensive ticket management interface with form validation and CRUD operations
 
 ## Data Flow
 
@@ -118,6 +120,15 @@ Changelog:
   * Implemented logout functionality and session management
   * Enhanced header with Export Excel button and logout controls
   * Ensured users can only book/cancel their own appointments for privacy
+- July 12, 2025. Added comprehensive ticket management system:
+  * Extended database schema with tickets table for storing ticket details
+  * Implemented full CRUD API endpoints for ticket management with authentication
+  * Created intuitive ticket modal with form validation using React Hook Form and Zod
+  * Added support for multiple ticket IDs, SLA status (Green/Amber/Red), and status tracking
+  * Enabled ticket management on any calendar date via Ctrl+click or right-click
+  * Enhanced calendar UI with ticket indicators and updated usage instructions
+  * Integrated ticket system with existing authentication and user permissions
+  * Added visual feedback for SLA and status with color-coded badges
 ```
 
 ## User Preferences

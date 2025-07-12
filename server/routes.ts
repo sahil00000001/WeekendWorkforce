@@ -2,7 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { z } from "zod";
-import { insertBookingSchema, type BookingRequest } from "@shared/schema";
+import { insertBookingSchema, insertTicketSchema, type BookingRequest } from "@shared/schema";
 import * as XLSX from 'xlsx';
 
 const bookingRequestSchema = z.object({
@@ -265,6 +265,79 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(exportData);
     } catch (error) {
       res.status(500).json({ message: "Failed to export schedule" });
+    }
+  });
+
+  // Ticket management routes
+  // Get tickets for a specific date
+  app.get("/api/tickets/:date", authenticateAccessKey, async (req, res) => {
+    try {
+      const { date } = req.params;
+      
+      // Validate date format (YYYY-MM-DD)
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+        return res.status(400).json({ message: "Invalid date format. Use YYYY-MM-DD" });
+      }
+
+      const tickets = await storage.getTickets(date);
+      res.json(tickets);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get tickets" });
+    }
+  });
+
+  // Create a new ticket
+  app.post("/api/tickets", authenticateAccessKey, async (req: any, res) => {
+    try {
+      const ticketData = insertTicketSchema.parse({
+        ...req.body,
+        createdBy: req.user.name
+      });
+
+      const ticket = await storage.createTicket(ticketData);
+      res.status(201).json(ticket);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid ticket data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to create ticket" });
+    }
+  });
+
+  // Update a ticket
+  app.put("/api/tickets/:id", authenticateAccessKey, async (req: any, res) => {
+    try {
+      const ticketId = parseInt(req.params.id);
+      if (isNaN(ticketId)) {
+        return res.status(400).json({ message: "Invalid ticket ID" });
+      }
+
+      const updates = insertTicketSchema.partial().parse(req.body);
+      const ticket = await storage.updateTicket(ticketId, updates);
+      res.json(ticket);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid update data", errors: error.errors });
+      }
+      if ((error as Error).message === 'Ticket not found') {
+        return res.status(404).json({ message: "Ticket not found" });
+      }
+      res.status(500).json({ message: "Failed to update ticket" });
+    }
+  });
+
+  // Delete a ticket
+  app.delete("/api/tickets/:id", authenticateAccessKey, async (req, res) => {
+    try {
+      const ticketId = parseInt(req.params.id);
+      if (isNaN(ticketId)) {
+        return res.status(400).json({ message: "Invalid ticket ID" });
+      }
+
+      await storage.deleteTicket(ticketId);
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete ticket" });
     }
   });
 
