@@ -22,6 +22,9 @@ export default function Login() {
     setIsLoading(true);
     setError("");
 
+    // Add a small delay to show loading state
+    await new Promise(resolve => setTimeout(resolve, 100));
+
     try {
       const response = await fetch("/api/auth/validate", {
         method: "POST",
@@ -178,6 +181,10 @@ export default function Login() {
                       // Auto-login when clicking on a team member
                       setIsLoading(true);
                       setError("");
+                      
+                      // Add a small delay to show loading state
+                      await new Promise(resolve => setTimeout(resolve, 100));
+                      
                       try {
                         const response = await fetch("/api/auth/validate", {
                           method: "POST",

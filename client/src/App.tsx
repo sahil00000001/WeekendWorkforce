@@ -24,17 +24,10 @@ function Router() {
 
   return (
     <Switch>
-      {isAuthenticated ? (
-        <>
-          <Route path="/" component={Dashboard} />
-          <Route component={NotFound} />
-        </>
-      ) : (
-        <>
-          <Route path="/" component={Login} />
-          <Route component={NotFound} />
-        </>
-      )}
+      <Route path="/">
+        {isAuthenticated ? <Dashboard /> : <Login />}
+      </Route>
+      <Route path="*" component={NotFound} />
     </Switch>
   );
 }

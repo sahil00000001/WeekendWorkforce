@@ -65,6 +65,8 @@ export function useAuth() {
     setAccessKey(accessKey);
     localStorage.setItem("accessKey", accessKey);
     localStorage.setItem("currentUser", userData.name);
+    // Force a state update to trigger re-render
+    setIsLoading(false);
   };
 
   const logout = () => {
