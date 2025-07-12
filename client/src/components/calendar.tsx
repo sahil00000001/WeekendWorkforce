@@ -145,10 +145,16 @@ export function Calendar({
     
     // Check if user has existing booking for this date
     const userBooking = getUserBookingForDate(date);
-    if (userBooking && event.shiftKey && onCancelBooking) {
-      // Shift+click to cancel booking
+    
+    if (userBooking && onCancelBooking) {
+      // If user already has a booking for this date, cancel it (toggle off)
       onCancelBooking(date);
+      toast({
+        title: "Booking cancelled",
+        description: `Cancelled booking for ${new Date(date).toLocaleDateString()}`,
+      });
     } else {
+      // If no booking exists, create one
       onBookDay(date);
     }
   };
@@ -254,7 +260,12 @@ export function Calendar({
                 const color = getTeamMemberColor(assignedUser);
                 const colors = colorClasses[color as keyof typeof colorClasses];
                 if (teamFilters[assignedUser] !== false) {
-                  dayClass += `${colors.light} hover:shadow-lg hover:-translate-y-1 cursor-pointer group `;
+                  // Different styling if it's the current user's booking (can be cancelled)
+                  if (assignedUser === currentUser && userBooking) {
+                    dayClass += `${colors.light} hover:bg-red-100 hover:shadow-lg hover:-translate-y-1 cursor-pointer group border-2 ${colors.border} `;
+                  } else {
+                    dayClass += `${colors.light} hover:shadow-lg hover:-translate-y-1 cursor-pointer group `;
+                  }
                 } else {
                   dayClass += 'hover:bg-gray-50 cursor-pointer ';
                 }
@@ -281,10 +292,13 @@ export function Calendar({
                     {/* User assignment */}
                     {assignedUser && teamFilters[assignedUser] !== false && (
                       <div className="flex-1 flex flex-col justify-center items-center">
-                        <div className={`w-8 h-8 ${colorClasses[getTeamMemberColor(assignedUser) as keyof typeof colorClasses]?.bg} rounded-full flex items-center justify-center shadow-sm mb-1`}>
+                        <div className={`w-8 h-8 ${colorClasses[getTeamMemberColor(assignedUser) as keyof typeof colorClasses]?.bg} rounded-full flex items-center justify-center shadow-sm mb-1 ${assignedUser === currentUser && userBooking ? 'ring-2 ring-red-300' : ''}`}>
                           <span className="text-white text-sm font-bold">{getInitial(assignedUser)}</span>
                         </div>
                         <div className="text-xs text-gray-600 font-medium">{assignedUser}</div>
+                        {assignedUser === currentUser && userBooking && (
+                          <div className="text-xs text-red-600 font-medium mt-1">Click to cancel</div>
+                        )}
                       </div>
                     )}
                     
@@ -328,7 +342,7 @@ export function Calendar({
               <h4 className="text-sm font-medium text-blue-900 mb-2">How to use:</h4>
               <ul className="text-xs text-blue-700 space-y-1">
                 <li>• Click any weekend day to book your duty</li>
-                <li>• Shift+click on your booked days to cancel</li>
+                <li>• Click your booked days again to cancel them</li>
                 <li>• Use team filters to show/hide member assignments</li>
                 <li>• You can book any 2 weekend days per month</li>
               </ul>
@@ -342,12 +356,39 @@ export function Calendar({
         <Alert className="border-yellow-200 bg-yellow-50">
           <AlertTriangle className="h-4 w-4 text-yellow-600" />
           <AlertDescription className="text-yellow-800">
-            <h3 className="font-medium mb-2">Conflict Resolution</h3>
-            {monthlySchedule.conflicts.map(conflict => (
-              <p key={conflict.date} className="text-sm">
-                {new Date(conflict.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}: Multiple bookings detected. {conflict.winner} (Priority) has been assigned this day. Other team members need to select alternative dates.
-              </p>
-            ))}
+            <h3 className="font-medium mb-3">Booking Conflicts Detected</h3>
+            <div className="space-y-2">
+              {monthlySchedule.conflicts.map(conflict => (
+                <div key={conflict.date} className="bg-white/50 p-3 rounded-lg border border-yellow-300">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="font-medium text-yellow-900">
+                      {new Date(conflict.date).toLocaleDateString('en-US', { 
+                        weekday: 'long',
+                        month: 'short', 
+                        day: 'numeric' 
+                      })}
+                    </span>
+                    <span className="text-xs bg-yellow-200 text-yellow-800 px-2 py-1 rounded-full">
+                      Conflict Resolved
+                    </span>
+                  </div>
+                  <div className="text-sm">
+                    <p className="mb-1">
+                      <span className="font-medium text-green-700">{conflict.winner}</span> has been assigned this day (higher priority)
+                    </p>
+                    <p className="text-yellow-700">
+                      Conflicting requests from: <span className="font-medium">{conflict.losers.join(', ')}</span>
+                    </p>
+                    <p className="text-xs text-yellow-600 mt-1">
+                      {conflict.losers.includes(currentUser) ? 
+                        "You need to select an alternative date." : 
+                        "Other team members need to select alternative dates."
+                      }
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
           </AlertDescription>
         </Alert>
       )}

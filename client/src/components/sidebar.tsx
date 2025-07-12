@@ -55,8 +55,15 @@ export function Sidebar({
                     <div>
                       <div className="text-sm font-bold text-gray-900">{member.name}</div>
                       <div className="text-xs text-gray-500 font-medium">Priority {member.priority}</div>
-                      <div className="text-xs text-blue-600 font-semibold">
-                        {memberStatus?.confirmedDays || 0}/2 days booked
+                      <div className="flex items-center space-x-2">
+                        <div className="text-xs text-blue-600 font-semibold">
+                          {memberStatus?.confirmedDays || 0}/2 days booked
+                        </div>
+                        {(memberStatus?.conflictedDays || 0) > 0 && (
+                          <Badge variant="destructive" className="text-xs px-1 py-0">
+                            {memberStatus?.conflictedDays} conflicts
+                          </Badge>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -95,26 +102,37 @@ export function Sidebar({
               <span className="font-bold text-blue-700 text-lg">{currentUserStatus?.remainingDays || 2}</span>
             </div>
             
-            {confirmedBookings.length > 0 && (
+            {/* Show all user bookings */}
+            {currentUserStatus && currentUserStatus.bookings.length > 0 && (
               <div className="pt-4 border-t border-gray-100">
-                <div className="text-sm font-medium text-gray-700 mb-3">Next Weekend Duties</div>
-                <div className="space-y-3">
-                  {confirmedBookings.map((booking) => {
+                <div className="text-sm font-medium text-gray-700 mb-3">Your Bookings</div>
+                <div className="space-y-2">
+                  {currentUserStatus.bookings.map((booking) => {
                     const date = new Date(booking.date);
                     const dayName = date.toLocaleDateString('en-US', { weekday: 'short' });
                     const dayMonth = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
                     
                     return (
-                      <div key={booking.id} className="flex items-center justify-between p-2 bg-green-50 rounded-lg">
+                      <div key={booking.id} className={`flex items-center justify-between p-2 rounded-lg ${booking.isConfirmed ? 'bg-green-50' : 'bg-red-50'}`}>
                         <span className="text-sm font-medium text-gray-700">{dayMonth} ({dayName})</span>
-                        <Badge variant="outline" className="bg-green-100 text-green-800 border-green-300 shadow-sm">
-                          <div className="w-2 h-2 bg-green-500 rounded-full mr-1"></div>
-                          Confirmed
+                        <Badge 
+                          variant={booking.isConfirmed ? "outline" : "destructive"} 
+                          className={booking.isConfirmed ? "bg-green-100 text-green-800 border-green-300 shadow-sm" : "bg-red-100 text-red-800 border-red-300 shadow-sm"}
+                        >
+                          <div className={`w-2 h-2 ${booking.isConfirmed ? 'bg-green-500' : 'bg-red-500'} rounded-full mr-1`}></div>
+                          {booking.isConfirmed ? 'Confirmed' : 'Conflicted'}
                         </Badge>
                       </div>
                     );
                   })}
                 </div>
+                {(currentUserStatus?.conflictedDays || 0) > 0 && (
+                  <div className="mt-3 p-2 bg-orange-50 rounded-lg border border-orange-200">
+                    <div className="text-xs text-orange-700 font-medium">
+                      You have conflicted bookings. Please select alternative dates.
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -131,6 +149,10 @@ export function Sidebar({
             <div className="flex items-center space-x-4 p-2 rounded-lg hover:bg-white/60 transition-colors">
               <div className="w-8 h-8 bg-green-100 rounded-xl border-2 border-green-500 shadow-sm"></div>
               <span className="text-sm font-medium text-gray-700">Confirmed Booking</span>
+            </div>
+            <div className="flex items-center space-x-4 p-2 rounded-lg hover:bg-white/60 transition-colors">
+              <div className="w-8 h-8 bg-red-100 rounded-xl border-2 border-red-500 shadow-sm ring-2 ring-red-300"></div>
+              <span className="text-sm font-medium text-gray-700">Your Booking (Click to Cancel)</span>
             </div>
             <div className="flex items-center space-x-4 p-2 rounded-lg hover:bg-white/60 transition-colors">
               <div className="w-8 h-8 bg-red-100 rounded-xl border-2 border-red-500 shadow-sm"></div>

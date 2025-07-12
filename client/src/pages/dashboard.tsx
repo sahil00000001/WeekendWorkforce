@@ -51,10 +51,7 @@ export default function Dashboard() {
   const handleCancelBooking = async (date: string) => {
     try {
       await cancelBookingMutation.mutateAsync({ userId: currentUser, date });
-      toast({
-        title: "Booking cancelled",
-        description: `Successfully cancelled booking for ${new Date(date).toLocaleDateString()}`,
-      });
+      // Don't show toast here as the calendar component will handle it
     } catch (error) {
       console.error('Cancel booking error:', error);
       toast({
