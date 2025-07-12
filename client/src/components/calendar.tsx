@@ -1,10 +1,9 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import { ChevronLeft, ChevronRight, Download, AlertTriangle, X } from 'lucide-react';
+import { ChevronLeft, ChevronRight, AlertTriangle, X } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
-import { useDutyScheduler } from '@/hooks/use-duty-scheduler';
 import type { TeamMember, MonthlySchedule, ConflictResolution } from '@shared/schema';
 
 interface CalendarProps {
@@ -29,38 +28,6 @@ export function Calendar({
   onCancelBooking 
 }: CalendarProps) {
   const { toast } = useToast();
-  const { useExportSchedule } = useDutyScheduler();
-  
-  const exportMutation = useExportSchedule();
-  
-  const handleExport = async () => {
-    try {
-      const data = await exportMutation.mutateAsync(currentMonth);
-      
-      // Create and download the file
-      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `schedule-${currentMonth}.json`;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
-      
-      toast({
-        title: "Export successful",
-        description: "Schedule has been downloaded as JSON file",
-      });
-    } catch (error) {
-      console.error('Export error:', error);
-      toast({
-        title: "Export failed",
-        description: (error as Error).message || "Failed to export schedule",
-        variant: "destructive",
-      });
-    }
-  };
 
   const getMonthName = (month: string) => {
     const date = new Date(month + '-01');
@@ -216,16 +183,7 @@ export function Calendar({
             </Button>
           </div>
           
-          <div className="flex items-center space-x-3">
-            <Button
-              onClick={handleExport}
-              disabled={exportMutation.isPending}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <Download className="w-4 h-4 mr-2" />
-              {exportMutation.isPending ? "Exporting..." : "Export"}
-            </Button>
-          </div>
+
         </div>
       </div>
 
@@ -292,11 +250,8 @@ export function Calendar({
                     {/* User assignment */}
                     {assignedUser && teamFilters[assignedUser] !== false && (
                       <div className="flex-1 flex flex-col justify-center items-center min-h-0 overflow-hidden">
-                        <div className={`w-8 h-8 ${colorClasses[getTeamMemberColor(assignedUser) as keyof typeof colorClasses]?.bg} rounded-full flex items-center justify-center shadow-sm mb-1 ${assignedUser === currentUser && userBooking ? 'ring-2 ring-red-300' : ''}`}>
-                          <span className="text-white text-sm font-bold">{getInitial(assignedUser)}</span>
-                        </div>
-                        <div className="text-xs text-gray-600 font-medium text-center px-1 truncate w-full" title={assignedUser}>
-                          {assignedUser}
+                        <div className={`px-2 py-1 ${colorClasses[getTeamMemberColor(assignedUser) as keyof typeof colorClasses]?.bg} rounded-lg shadow-sm mb-1 ${assignedUser === currentUser && userBooking ? 'ring-2 ring-red-300' : ''}`}>
+                          <span className="text-white text-xs font-bold truncate">{assignedUser}</span>
                         </div>
                         {assignedUser === currentUser && userBooking && (
                           <div className="text-xs text-red-600 font-medium mt-1 text-center px-1 truncate w-full">
