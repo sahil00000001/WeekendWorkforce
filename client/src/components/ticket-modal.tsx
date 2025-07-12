@@ -17,7 +17,7 @@ import type { Ticket } from '@shared/schema';
 
 const ticketFormSchema = z.object({
   ticketIds: z.string().min(1, 'At least one ticket ID is required'),
-  sla: z.enum(['green', 'amber', 'red']),
+  priority: z.enum(['P1', 'P2', 'P3', 'P4']),
   status: z.enum(['open', 'in_progress', 'resolved', 'escalated']),
   notes: z.string().optional(),
 });
@@ -40,7 +40,7 @@ export function TicketModal({ isOpen, onClose, date, currentUser }: TicketModalP
     resolver: zodResolver(ticketFormSchema),
     defaultValues: {
       ticketIds: '',
-      sla: 'green',
+      priority: 'P3',
       status: 'open',
       notes: '',
     },
@@ -53,7 +53,7 @@ export function TicketModal({ isOpen, onClose, date, currentUser }: TicketModalP
       const ticketData = {
         date,
         ticketIds,
-        sla: data.sla,
+        priority: data.priority,
         status: data.status,
         notes: data.notes || '',
         createdBy: currentUser,
@@ -91,7 +91,7 @@ export function TicketModal({ isOpen, onClose, date, currentUser }: TicketModalP
     setEditingTicket(ticket);
     form.reset({
       ticketIds: ticket.ticketIds.join(', '),
-      sla: ticket.sla as 'green' | 'amber' | 'red',
+      priority: ticket.priority as 'P1' | 'P2' | 'P3' | 'P4',
       status: ticket.status as 'open' | 'in_progress' | 'resolved' | 'escalated',
       notes: ticket.notes || '',
     });
@@ -113,12 +113,23 @@ export function TicketModal({ isOpen, onClose, date, currentUser }: TicketModalP
     }
   };
 
-  const getSLAColor = (sla: string) => {
-    switch (sla) {
-      case 'green': return 'bg-green-100 text-green-800 border-green-200';
-      case 'amber': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-      case 'red': return 'bg-red-100 text-red-800 border-red-200';
+  const getPriorityColor = (priority: string) => {
+    switch (priority) {
+      case 'P1': return 'bg-red-100 text-red-800 border-red-200';
+      case 'P2': return 'bg-orange-100 text-orange-800 border-orange-200';
+      case 'P3': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+      case 'P4': return 'bg-green-100 text-green-800 border-green-200';
       default: return 'bg-gray-100 text-gray-800 border-gray-200';
+    }
+  };
+
+  const getPriorityDescription = (priority: string) => {
+    switch (priority) {
+      case 'P1': return 'Critical - System Down';
+      case 'P2': return 'High - Critical Feature Loss';
+      case 'P3': return 'Medium - Non-Critical Feature';
+      case 'P4': return 'Low - No Customer Impact';
+      default: return '';
     }
   };
 
@@ -171,15 +182,16 @@ export function TicketModal({ isOpen, onClose, date, currentUser }: TicketModalP
               </div>
 
               <div>
-                <Label htmlFor="sla">SLA Status</Label>
-                <Select onValueChange={(value) => form.setValue('sla', value as 'green' | 'amber' | 'red')}>
+                <Label htmlFor="priority">Priority</Label>
+                <Select onValueChange={(value) => form.setValue('priority', value as 'P1' | 'P2' | 'P3' | 'P4')}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select SLA status" />
+                    <SelectValue placeholder="Select priority" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="green">Green - On Track</SelectItem>
-                    <SelectItem value="amber">Amber - At Risk</SelectItem>
-                    <SelectItem value="red">Red - Overdue</SelectItem>
+                    <SelectItem value="P1">P1 - Critical (System Down)</SelectItem>
+                    <SelectItem value="P2">P2 - High (Critical Feature Loss)</SelectItem>
+                    <SelectItem value="P3">P3 - Medium (Non-Critical Feature)</SelectItem>
+                    <SelectItem value="P4">P4 - Low (No Customer Impact)</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -279,12 +291,15 @@ export function TicketModal({ isOpen, onClose, date, currentUser }: TicketModalP
                     </CardHeader>
                     <CardContent className="pt-0">
                       <div className="flex gap-2 mb-2">
-                        <Badge className={getSLAColor(ticket.sla)}>
-                          SLA: {ticket.sla.toUpperCase()}
+                        <Badge className={getPriorityColor(ticket.priority)}>
+                          {ticket.priority}
                         </Badge>
                         <Badge className={getStatusColor(ticket.status)}>
                           {ticket.status.replace('_', ' ').toUpperCase()}
                         </Badge>
+                      </div>
+                      <div className="text-xs text-gray-600 mb-2">
+                        {getPriorityDescription(ticket.priority)}
                       </div>
                       {ticket.notes && (
                         <p className="text-sm text-gray-600 mt-2">{ticket.notes}</p>

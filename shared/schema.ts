@@ -31,7 +31,7 @@ export const tickets = pgTable("tickets", {
   id: serial("id").primaryKey(),
   date: text("date").notNull(), // YYYY-MM-DD format
   ticketIds: text("ticket_ids").array().notNull().default([]), // Array of ticket IDs
-  sla: varchar("sla", { length: 10 }).notNull(), // "green", "amber", "red"
+  priority: varchar("priority", { length: 2 }).notNull(), // "P1", "P2", "P3", "P4"
   status: varchar("status", { length: 20 }).notNull(), // "open", "in_progress", "resolved", "escalated"
   notes: text("notes").default(""),
   createdBy: text("created_by").notNull(),

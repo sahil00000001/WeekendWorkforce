@@ -124,11 +124,19 @@ Changelog:
   * Extended database schema with tickets table for storing ticket details
   * Implemented full CRUD API endpoints for ticket management with authentication
   * Created intuitive ticket modal with form validation using React Hook Form and Zod
-  * Added support for multiple ticket IDs, SLA status (Green/Amber/Red), and status tracking
+  * Added support for multiple ticket IDs, priority system (P1-P4), and status tracking
   * Enabled ticket management on any calendar date via Ctrl+click or right-click
   * Enhanced calendar UI with ticket indicators and updated usage instructions
   * Integrated ticket system with existing authentication and user permissions
-  * Added visual feedback for SLA and status with color-coded badges
+  * Added visual feedback for priority and status with color-coded badges
+- July 12, 2025. Updated ticket system to use YondrOne priority system:
+  * Replaced SLA system with YondrOne priority classifications (P1-P4)
+  * P1: Critical - System Down (Complete loss of YondrOne, no workaround)
+  * P2: High - Critical Feature Loss (Complete loss of critical feature, no workaround)
+  * P3: Medium - Non-Critical Feature (Service operational, non-critical feature issue)
+  * P4: Low - No Customer Impact (Service operational, no customer impact)
+  * Updated database schema from 'sla' to 'priority' column
+  * Enhanced ticket modal with detailed priority descriptions and color coding
 ```
 
 ## User Preferences
