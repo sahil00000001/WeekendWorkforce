@@ -39,6 +39,11 @@ export default function Login() {
           name: data.user.name,
           color: data.user.color || "purple",
         });
+        // Show success toast
+        toast({
+          title: "Login successful",
+          description: `Welcome back, ${data.user.name}!`,
+        });
       } else {
         setError("Invalid access key. Please check your key and try again.");
       }
@@ -167,9 +172,41 @@ export default function Login() {
                   <div
                     key={member.name}
                     className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
-                    onClick={() => {
+                    onClick={async () => {
                       setAccessKey(member.accessKey);
                       setShowAccessKeys(false);
+                      // Auto-login when clicking on a team member
+                      setIsLoading(true);
+                      setError("");
+                      try {
+                        const response = await fetch("/api/auth/validate", {
+                          method: "POST",
+                          headers: {
+                            "Content-Type": "application/json",
+                          },
+                          body: JSON.stringify({ accessKey: member.accessKey }),
+                        });
+
+                        const data = await response.json();
+
+                        if (data.valid) {
+                          login(member.accessKey, {
+                            name: data.user.name,
+                            color: data.user.color || "purple",
+                          });
+                          toast({
+                            title: "Login successful",
+                            description: `Welcome back, ${data.user.name}!`,
+                          });
+                        } else {
+                          setError("Invalid access key. Please check your key and try again.");
+                        }
+                      } catch (error) {
+                        console.error("Login error:", error);
+                        setError("Unable to connect to the server. Please try again.");
+                      } finally {
+                        setIsLoading(false);
+                      }
                     }}
                   >
                     <div className="font-medium text-gray-900">{member.name}</div>

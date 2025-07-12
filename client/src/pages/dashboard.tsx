@@ -39,6 +39,7 @@ export default function Dashboard() {
         description: `Successfully booked ${new Date(date).toLocaleDateString()}`,
       });
     } catch (error) {
+      console.error('Booking error:', error);
       toast({
         title: "Booking failed",
         description: (error as Error).message,
@@ -55,6 +56,7 @@ export default function Dashboard() {
         description: `Successfully cancelled booking for ${new Date(date).toLocaleDateString()}`,
       });
     } catch (error) {
+      console.error('Cancel booking error:', error);
       toast({
         title: "Cancellation failed",
         description: (error as Error).message,
@@ -93,6 +95,7 @@ export default function Dashboard() {
         description: `Excel file for ${currentMonth} has been downloaded`,
       });
     } catch (error) {
+      console.error('Export Excel error:', error);
       toast({
         title: "Export Failed",
         description: (error as Error).message,

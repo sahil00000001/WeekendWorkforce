@@ -53,9 +53,10 @@ export function Calendar({
         description: "Schedule has been downloaded as JSON file",
       });
     } catch (error) {
+      console.error('Export error:', error);
       toast({
         title: "Export failed",
-        description: "Failed to export schedule",
+        description: (error as Error).message || "Failed to export schedule",
         variant: "destructive",
       });
     }
@@ -213,10 +214,10 @@ export function Calendar({
             <Button
               onClick={handleExport}
               disabled={exportMutation.isPending}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl shadow-sm"
+              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Download className="w-4 h-4 mr-2" />
-              Export
+              {exportMutation.isPending ? "Exporting..." : "Export"}
             </Button>
           </div>
         </div>
@@ -245,7 +246,7 @@ export function Calendar({
               const isWeekendDay = isWeekend(day.date);
               const isTodayDate = isToday(day.date);
               
-              let dayClass = 'bg-white relative h-24 p-3 transition-all duration-300 ease-out border-0 ';
+              let dayClass = 'bg-white relative h-24 p-3 transition-all duration-200 ease-out border-0 ';
               
               if (!isWeekendDay) {
                 dayClass += 'opacity-40 cursor-not-allowed ';
