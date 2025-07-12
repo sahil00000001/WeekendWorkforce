@@ -1,14 +1,13 @@
 import { useState } from "react";
-import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Eye, EyeOff, Shield, Users } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/use-auth";
 
 export default function Login() {
-  const [, setLocation] = useLocation();
   const [accessKey, setAccessKey] = useState("");
   const [showKey, setShowKey] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -16,6 +15,7 @@ export default function Login() {
   const [showAccessKeys, setShowAccessKeys] = useState(false);
   const [accessKeys, setAccessKeys] = useState<Array<{name: string, accessKey: string}>>([]);
   const { toast } = useToast();
+  const { login } = useAuth();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,16 +34,11 @@ export default function Login() {
       const data = await response.json();
 
       if (data.valid) {
-        // Store access key in localStorage
-        localStorage.setItem("accessKey", accessKey);
-        localStorage.setItem("currentUser", data.user.name);
-        
-        toast({
-          title: "Login Successful",
-          description: `Welcome back, ${data.user.name}!`,
+        // Use the auth hook to handle login - router will automatically redirect
+        login(accessKey, {
+          name: data.user.name,
+          color: data.user.color || "purple",
         });
-        
-        setLocation("/");
       } else {
         setError("Invalid access key. Please check your key and try again.");
       }

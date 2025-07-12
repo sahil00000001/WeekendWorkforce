@@ -59,6 +59,14 @@ export function useAuth() {
     }
   };
 
+  // Add this missing login function
+  const login = (accessKey: string, userData: AuthUser) => {
+    setUser(userData);
+    setAccessKey(accessKey);
+    localStorage.setItem("accessKey", accessKey);
+    localStorage.setItem("currentUser", userData.name);
+  };
+
   const logout = () => {
     localStorage.removeItem("accessKey");
     localStorage.removeItem("currentUser");
@@ -75,6 +83,7 @@ export function useAuth() {
     accessKey,
     isLoading,
     isAuthenticated: !!user,
+    login, // Add this to the return object
     logout,
   };
 }

@@ -137,3 +137,15 @@ Result: Srishti works Dec 15th, others must pick different days
 - **Efficient team coordination**
 
 This system eliminates manual scheduling conflicts while maintaining fairness through a clear priority system and providing full transparency to all team members about their weekend duty assignments.
+  // Allow port to be configurable via environment variable
+  // Default to 5000 but allow override for Windows compatibility
+  const port = process.env.PORT ? parseInt(process.env.PORT, 10) : 5000;
+  
+  // Use localhost instead of 0.0.0.0 for Windows compatibility
+  // Remove reusePort as it's not supported on Windows
+  const host = process.env.HOST || "localhost";
+  
+  server.listen(port, host, () => {
+    log(`serving on http://${host}:${port}`);
+  });
+})();
