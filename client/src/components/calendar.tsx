@@ -284,27 +284,31 @@ export function Calendar({
                   className={dayClass}
                   disabled={!isWeekendDay}
                 >
-                  <div className="flex flex-col h-full">
-                    <div className={`text-lg font-semibold mb-2 ${isTodayDate ? 'text-blue-600' : 'text-gray-900'}`}>
+                  <div className="flex flex-col h-full overflow-hidden">
+                    <div className={`text-lg font-semibold mb-2 flex-shrink-0 ${isTodayDate ? 'text-blue-600' : 'text-gray-900'}`}>
                       {new Date(day.date).getDate()}
                     </div>
                     
                     {/* User assignment */}
                     {assignedUser && teamFilters[assignedUser] !== false && (
-                      <div className="flex-1 flex flex-col justify-center items-center">
+                      <div className="flex-1 flex flex-col justify-center items-center min-h-0 overflow-hidden">
                         <div className={`w-8 h-8 ${colorClasses[getTeamMemberColor(assignedUser) as keyof typeof colorClasses]?.bg} rounded-full flex items-center justify-center shadow-sm mb-1 ${assignedUser === currentUser && userBooking ? 'ring-2 ring-red-300' : ''}`}>
                           <span className="text-white text-sm font-bold">{getInitial(assignedUser)}</span>
                         </div>
-                        <div className="text-xs text-gray-600 font-medium">{assignedUser}</div>
+                        <div className="text-xs text-gray-600 font-medium text-center px-1 truncate w-full" title={assignedUser}>
+                          {assignedUser}
+                        </div>
                         {assignedUser === currentUser && userBooking && (
-                          <div className="text-xs text-red-600 font-medium mt-1">Click to cancel</div>
+                          <div className="text-xs text-red-600 font-medium mt-1 text-center px-1 truncate w-full">
+                            Click to cancel
+                          </div>
                         )}
                       </div>
                     )}
                     
                     {/* Available weekend indicator */}
                     {!assignedUser && isWeekendDay && (
-                      <div className="flex-1 flex items-center justify-center">
+                      <div className="flex-1 flex items-center justify-center min-h-0">
                         <div className="w-8 h-8 border-2 border-dashed border-gray-300 rounded-full flex items-center justify-center group-hover:border-blue-400 transition-colors">
                           <span className="text-gray-400 text-xs font-bold group-hover:text-blue-500">+</span>
                         </div>

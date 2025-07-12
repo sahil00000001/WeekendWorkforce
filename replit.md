@@ -30,7 +30,7 @@ This is a comprehensive Weekend Duty Management System built for a 4-person SaaS
 - **final_schedule**: Stores the resolved monthly schedule after conflict resolution
 
 ### Core Business Logic
-- **Priority System**: Srishti (1st) → Aakash (2nd) → Ashish (3rd) → Sahil (4th)
+- **Priority System**: Shrishti (1st) → Aakash (2nd) → Ashish (3rd) → Sahil (4th)
 - **Flexible Booking**: Team members can book any 2 weekend days per month
 - **Conflict Resolution**: Automatic priority-based resolution when multiple people book the same day
 - **Real-time Updates**: Immediate UI updates using React Query mutations
@@ -43,7 +43,7 @@ This is a comprehensive Weekend Duty Management System built for a 4-person SaaS
 
 ## Data Flow
 
-1. **User Authentication**: Currently hardcoded to 'Srishti' (mock implementation)
+1. **User Authentication**: Currently hardcoded to 'Shrishti' (mock implementation)
 2. **Team Data Loading**: Fetch team members on application start
 3. **Monthly Schedule**: Load current month's schedule and bookings
 4. **Booking Process**: 
@@ -111,7 +111,7 @@ Changelog:
   * Updated legend with modern iconography and smooth hover transitions
   * Applied gradient background to main dashboard for depth and visual appeal
 - July 05, 2025. Implemented privacy controls and Excel export:
-  * Added individual access keys for each team member (SRISHTI_2025_SECURE, etc.)
+  * Added individual access keys for each team member (SHRISHTI_2025_SECURE, etc.)
   * Created secure authentication system with login page and access key validation
   * Protected all API endpoints with authentication middleware
   * Added beautiful Excel export functionality with multiple sheets (Schedule, Summary, Conflicts)

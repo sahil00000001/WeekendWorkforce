@@ -61,7 +61,7 @@ export class MemStorage implements IStorage {
 
   private async initializeTeamMembers() {
     const defaultMembers: InsertTeamMember[] = [
-      { name: 'Srishti', priority: 1, color: 'purple', isActive: true, accessKey: 'SRISHTI_2025_SECURE' },
+      { name: 'Shrishti', priority: 1, color: 'purple', isActive: true, accessKey: 'SHRISHTI_2025_SECURE' },
       { name: 'Aakash', priority: 2, color: 'blue', isActive: true, accessKey: 'AAKASH_2025_SECURE' },
       { name: 'Ashish', priority: 3, color: 'green', isActive: true, accessKey: 'ASHISH_2025_SECURE' },
       { name: 'Sahil', priority: 4, color: 'yellow', isActive: true, accessKey: 'SAHIL_2025_SECURE' }
