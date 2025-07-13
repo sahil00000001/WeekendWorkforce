@@ -126,26 +126,7 @@ export function Calendar({
     return monthlyTickets[date] || [];
   };
 
-  const getHighestPriorityTicket = (tickets: Ticket[]): Ticket | null => {
-    if (tickets.length === 0) return null;
-    
-    const priorityOrder = { 'P1': 1, 'P2': 2, 'P3': 3, 'P4': 4 };
-    return tickets.reduce((highest, ticket) => {
-      const currentPriority = priorityOrder[ticket.priority as keyof typeof priorityOrder] || 5;
-      const highestPriority = priorityOrder[highest.priority as keyof typeof priorityOrder] || 5;
-      return currentPriority < highestPriority ? ticket : highest;
-    });
-  };
-
-  const getTicketBackgroundColor = (priority: string): string => {
-    switch (priority) {
-      case 'P1': return 'bg-red-100 border-red-300';
-      case 'P2': return 'bg-orange-100 border-orange-300';
-      case 'P3': return 'bg-yellow-100 border-yellow-300';
-      case 'P4': return 'bg-green-100 border-green-300';
-      default: return 'bg-gray-100 border-gray-300';
-    }
-  };
+  // Remove unused functions since we're not showing background colors anymore
 
   const colorClasses = {
     purple: { bg: 'bg-purple-600', light: 'bg-purple-100', border: 'border-purple-500' },
@@ -272,15 +253,10 @@ export function Calendar({
               const isWeekendDay = isWeekend(day.date);
               const isTodayDate = isToday(day.date);
               const tickets = getTicketsForDate(day.date);
-              const highestPriorityTicket = getHighestPriorityTicket(tickets);
               
               let dayClass = 'bg-white relative h-24 p-3 transition-all duration-200 ease-out border-0 ';
               
-              // Add ticket background color if there are tickets
-              if (highestPriorityTicket) {
-                const ticketBg = getTicketBackgroundColor(highestPriorityTicket.priority);
-                dayClass = dayClass.replace('bg-white', ticketBg);
-              }
+              // Only show ticket indicators for assigned dates, not background colors
               
               if (!isWeekendDay) {
                 dayClass += 'opacity-60 cursor-pointer hover:bg-gray-50 ';
@@ -349,8 +325,8 @@ export function Calendar({
                       </div>
                     )}
                     
-                    {/* Ticket indicator */}
-                    {tickets.length > 0 && (
+                    {/* Ticket indicator - only show for assigned dates */}
+                    {assignedUser && tickets.length > 0 && (
                       <div className="absolute top-1 left-1">
                         <div className="flex items-center justify-center w-5 h-5 bg-white rounded-full shadow-sm border">
                           <FileText className="w-3 h-3 text-gray-600" />

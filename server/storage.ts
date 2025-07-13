@@ -312,7 +312,7 @@ export class MemStorage implements IStorage {
     // Resolve conflicts
     const conflicts = await this.resolveConflicts(month);
 
-    // Calculate user statuses
+    // Calculate user statuses with ticket information
     const userStatuses: UserBookingStatus[] = [];
     for (const member of teamMembers) {
       const userBookings = await this.getUserBookings(member.name, month);
@@ -320,12 +320,24 @@ export class MemStorage implements IStorage {
       const conflictedDays = userBookings.filter(b => b.isConflicted).length;
       const remainingDays = Math.max(0, 2 - confirmedDays);
 
+      // Get tickets for confirmed booking dates
+      const confirmedBookings = userBookings.filter(b => b.isConfirmed);
+      const bookingsWithTickets = [];
+      
+      for (const booking of userBookings) {
+        const tickets = await this.getTickets(booking.date);
+        bookingsWithTickets.push({
+          ...booking,
+          tickets: tickets
+        });
+      }
+
       userStatuses.push({
         userId: member.name,
         confirmedDays,
         conflictedDays,
         remainingDays,
-        bookings: userBookings
+        bookings: bookingsWithTickets
       });
     }
 

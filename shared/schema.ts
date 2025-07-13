@@ -78,12 +78,16 @@ export type ConflictResolution = {
   losers: string[];
 };
 
+export type BookingWithTickets = Booking & {
+  tickets?: Ticket[];
+};
+
 export type UserBookingStatus = {
   userId: string;
   confirmedDays: number;
   conflictedDays: number;
   remainingDays: number;
-  bookings: Booking[];
+  bookings: BookingWithTickets[];
 };
 
 export type MonthlySchedule = {

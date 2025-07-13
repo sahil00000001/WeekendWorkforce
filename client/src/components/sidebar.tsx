@@ -111,17 +111,45 @@ export function Sidebar({
                     const date = new Date(booking.date);
                     const dayName = date.toLocaleDateString('en-US', { weekday: 'short' });
                     const dayMonth = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                    const hasTickets = booking.tickets && booking.tickets.length > 0;
                     
                     return (
-                      <div key={booking.id} className={`flex items-center justify-between p-2 rounded-lg ${booking.isConfirmed ? 'bg-green-50' : 'bg-red-50'}`}>
-                        <span className="text-sm font-medium text-gray-700">{dayMonth} ({dayName})</span>
-                        <Badge 
-                          variant={booking.isConfirmed ? "outline" : "destructive"} 
-                          className={booking.isConfirmed ? "bg-green-100 text-green-800 border-green-300 shadow-sm" : "bg-red-100 text-red-800 border-red-300 shadow-sm"}
-                        >
-                          <div className={`w-2 h-2 ${booking.isConfirmed ? 'bg-green-500' : 'bg-red-500'} rounded-full mr-1`}></div>
-                          {booking.isConfirmed ? 'Confirmed' : 'Conflicted'}
-                        </Badge>
+                      <div key={booking.id} className={`p-3 rounded-lg ${booking.isConfirmed ? 'bg-green-50' : 'bg-red-50'}`}>
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-sm font-medium text-gray-700">{dayMonth} ({dayName})</span>
+                          <Badge 
+                            variant={booking.isConfirmed ? "outline" : "destructive"} 
+                            className={booking.isConfirmed ? "bg-green-100 text-green-800 border-green-300 shadow-sm" : "bg-red-100 text-red-800 border-red-300 shadow-sm"}
+                          >
+                            <div className={`w-2 h-2 ${booking.isConfirmed ? 'bg-green-500' : 'bg-red-500'} rounded-full mr-1`}></div>
+                            {booking.isConfirmed ? 'Confirmed' : 'Conflicted'}
+                          </Badge>
+                        </div>
+                        
+                        {/* Show tickets for confirmed bookings */}
+                        {booking.isConfirmed && hasTickets && (
+                          <div className="mt-2 space-y-1">
+                            <div className="text-xs font-medium text-gray-600">Tickets:</div>
+                            {booking.tickets?.map((ticket, idx) => (
+                              <div key={idx} className="text-xs bg-white rounded px-2 py-1 border">
+                                <span className="font-medium">{ticket.ticketIds.join(', ')}</span>
+                                <span className={`ml-2 px-1 rounded text-white text-xs ${
+                                  ticket.priority === 'P1' ? 'bg-red-500' :
+                                  ticket.priority === 'P2' ? 'bg-orange-500' :
+                                  ticket.priority === 'P3' ? 'bg-yellow-500' :
+                                  'bg-green-500'
+                                }`}>
+                                  {ticket.priority}
+                                </span>
+                                <span className="ml-1 text-gray-500">({ticket.status})</span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                        
+                        {booking.isConfirmed && !hasTickets && (
+                          <div className="mt-2 text-xs text-gray-500">No tickets for this date</div>
+                        )}
                       </div>
                     );
                   })}

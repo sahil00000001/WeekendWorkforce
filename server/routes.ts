@@ -123,30 +123,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const assignedTo = schedule.assignments[dateStr] || 'Unassigned';
           const dayName = dayOfWeek === 0 ? 'Sunday' : 'Saturday';
           
-          // Get tickets for this date
-          const tickets = await storage.getTickets(dateStr);
-          const ticketSummary = tickets.length > 0 
-            ? tickets.map(t => `${t.ticketIds.join(', ')} (${t.priority} - ${t.status})`).join('; ')
-            : 'No tickets';
+          // Get tickets only if this date is assigned to someone
+          let ticketSummary = 'No tickets';
+          if (assignedTo !== 'Unassigned') {
+            const tickets = await storage.getTickets(dateStr);
+            ticketSummary = tickets.length > 0 
+              ? tickets.map(t => `${t.ticketIds.join(', ')} (${t.priority} - ${t.status})`).join('; ')
+              : 'No tickets';
+          }
             
           scheduleData.push([dateStr, assignedTo, dayName, ticketSummary]);
         }
       }
       
-      // Sheet 2: Team Member Summary
+      // Sheet 2: Team Member Summary with Tickets
       const summaryData = [];
       summaryData.push(['Team Member Summary - ' + month]);
       summaryData.push(['']);
-      summaryData.push(['Name', 'Priority', 'Confirmed Days', 'Conflicted Days', 'Remaining Days']);
+      summaryData.push(['Name', 'Priority', 'Confirmed Days', 'Conflicted Days', 'Remaining Days', 'Booked Dates & Tickets']);
       
       for (const status of schedule.userStatuses) {
         const member = teamMembers.find(m => m.name === status.userId);
+        const confirmedBookings = status.bookings.filter(b => b.isConfirmed);
+        
+        // Format booked dates with their tickets
+        const bookedDatesInfo = confirmedBookings.map(booking => {
+          const tickets = booking.tickets || [];
+          if (tickets.length > 0) {
+            const ticketInfo = tickets.map(t => `${t.ticketIds.join(', ')} (${t.priority})`).join('; ');
+            return `${booking.date}: ${ticketInfo}`;
+          } else {
+            return `${booking.date}: No tickets`;
+          }
+        }).join(' | ');
+        
         summaryData.push([
           status.userId,
           member?.priority || 'N/A',
           status.confirmedDays,
           status.conflictedDays,
-          status.remainingDays
+          status.remainingDays,
+          bookedDatesInfo || 'No confirmed bookings'
         ]);
       }
       
@@ -169,26 +186,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
         XLSX.utils.book_append_sheet(wb, conflictSheet, 'Conflicts');
       }
       
-      // Sheet 4: All Tickets for the Month
+      // Sheet 4: Tickets for Booked Dates Only
       const ticketData = [];
-      ticketData.push(['All Tickets - ' + month]);
+      ticketData.push(['Tickets for Booked Dates - ' + month]);
       ticketData.push(['']);
-      ticketData.push(['Date', 'Ticket IDs', 'Priority', 'Status', 'Notes', 'Created By']);
+      ticketData.push(['Date', 'Assigned To', 'Ticket IDs', 'Priority', 'Status', 'Notes', 'Created By']);
       
-      // Get all tickets for the month
-      for (let day = 1; day <= daysInMonth; day++) {
-        const date = new Date(year, monthNum - 1, day);
-        const dateStr = date.toISOString().split('T')[0];
+      // Get tickets only for dates that are assigned (booked)
+      for (const [dateStr, assignedTo] of Object.entries(schedule.assignments)) {
         const tickets = await storage.getTickets(dateStr);
         
-        for (const ticket of tickets) {
+        if (tickets.length > 0) {
+          for (const ticket of tickets) {
+            ticketData.push([
+              dateStr,
+              assignedTo,
+              ticket.ticketIds.join(', '),
+              ticket.priority,
+              ticket.status,
+              ticket.notes || 'No notes',
+              ticket.createdBy
+            ]);
+          }
+        } else {
+          // Show assigned dates even without tickets
           ticketData.push([
             dateStr,
-            ticket.ticketIds.join(', '),
-            ticket.priority,
-            ticket.status,
-            ticket.notes || 'No notes',
-            ticket.createdBy
+            assignedTo,
+            'No tickets',
+            '-',
+            '-',
+            '-',
+            '-'
           ]);
         }
       }
