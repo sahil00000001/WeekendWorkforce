@@ -5,7 +5,9 @@ import { ChevronLeft, ChevronRight, AlertTriangle, X, FileText } from 'lucide-re
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
 import { TicketModal } from './ticket-modal';
-import type { TeamMember, MonthlySchedule, ConflictResolution } from '@shared/schema';
+import { useQuery } from '@tanstack/react-query';
+import { apiRequest } from '@/lib/queryClient';
+import type { TeamMember, MonthlySchedule, ConflictResolution, Ticket } from '@shared/schema';
 
 interface CalendarProps {
   currentMonth: string;
@@ -31,6 +33,30 @@ export function Calendar({
   const { toast } = useToast();
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [isTicketModalOpen, setIsTicketModalOpen] = useState(false);
+
+  // Get all tickets for the current month
+  const { data: monthlyTickets = {} } = useQuery({
+    queryKey: ['/api/tickets/month', currentMonth],
+    queryFn: async () => {
+      const [year, month] = currentMonth.split('-').map(Number);
+      const daysInMonth = new Date(year, month, 0).getDate();
+      const ticketsByDate: Record<string, Ticket[]> = {};
+      
+      // Fetch tickets for each day of the month
+      for (let day = 1; day <= daysInMonth; day++) {
+        const date = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+        try {
+          const tickets = await apiRequest(`/api/tickets/${date}`);
+          if (tickets && tickets.length > 0) {
+            ticketsByDate[date] = tickets;
+          }
+        } catch (error) {
+          // Ignore errors for individual days
+        }
+      }
+      return ticketsByDate;
+    },
+  });
 
   const getMonthName = (month: string) => {
     const date = new Date(month + '-01');
@@ -95,6 +121,31 @@ export function Calendar({
   };
 
   const getInitial = (name: string) => name.charAt(0).toUpperCase();
+
+  const getTicketsForDate = (date: string): Ticket[] => {
+    return monthlyTickets[date] || [];
+  };
+
+  const getHighestPriorityTicket = (tickets: Ticket[]): Ticket | null => {
+    if (tickets.length === 0) return null;
+    
+    const priorityOrder = { 'P1': 1, 'P2': 2, 'P3': 3, 'P4': 4 };
+    return tickets.reduce((highest, ticket) => {
+      const currentPriority = priorityOrder[ticket.priority as keyof typeof priorityOrder] || 5;
+      const highestPriority = priorityOrder[highest.priority as keyof typeof priorityOrder] || 5;
+      return currentPriority < highestPriority ? ticket : highest;
+    });
+  };
+
+  const getTicketBackgroundColor = (priority: string): string => {
+    switch (priority) {
+      case 'P1': return 'bg-red-100 border-red-300';
+      case 'P2': return 'bg-orange-100 border-orange-300';
+      case 'P3': return 'bg-yellow-100 border-yellow-300';
+      case 'P4': return 'bg-green-100 border-green-300';
+      default: return 'bg-gray-100 border-gray-300';
+    }
+  };
 
   const colorClasses = {
     purple: { bg: 'bg-purple-600', light: 'bg-purple-100', border: 'border-purple-500' },
@@ -220,8 +271,16 @@ export function Calendar({
               const userBooking = getUserBookingForDate(day.date);
               const isWeekendDay = isWeekend(day.date);
               const isTodayDate = isToday(day.date);
+              const tickets = getTicketsForDate(day.date);
+              const highestPriorityTicket = getHighestPriorityTicket(tickets);
               
               let dayClass = 'bg-white relative h-24 p-3 transition-all duration-200 ease-out border-0 ';
+              
+              // Add ticket background color if there are tickets
+              if (highestPriorityTicket) {
+                const ticketBg = getTicketBackgroundColor(highestPriorityTicket.priority);
+                dayClass = dayClass.replace('bg-white', ticketBg);
+              }
               
               if (!isWeekendDay) {
                 dayClass += 'opacity-60 cursor-pointer hover:bg-gray-50 ';
@@ -286,6 +345,20 @@ export function Calendar({
                       <div className="flex-1 flex items-center justify-center min-h-0">
                         <div className="w-8 h-8 border-2 border-dashed border-gray-300 rounded-full flex items-center justify-center group-hover:border-blue-400 transition-colors">
                           <span className="text-gray-400 text-xs font-bold group-hover:text-blue-500">+</span>
+                        </div>
+                      </div>
+                    )}
+                    
+                    {/* Ticket indicator */}
+                    {tickets.length > 0 && (
+                      <div className="absolute top-1 left-1">
+                        <div className="flex items-center justify-center w-5 h-5 bg-white rounded-full shadow-sm border">
+                          <FileText className="w-3 h-3 text-gray-600" />
+                          {tickets.length > 1 && (
+                            <span className="absolute -top-1 -right-1 w-3 h-3 bg-blue-500 text-white text-xs rounded-full flex items-center justify-center">
+                              {tickets.length}
+                            </span>
+                          )}
                         </div>
                       </div>
                     )}

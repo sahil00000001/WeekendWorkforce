@@ -137,6 +137,16 @@ Changelog:
   * P4: Low - No Customer Impact (Service operational, no customer impact)
   * Updated database schema from 'sla' to 'priority' column
   * Enhanced ticket modal with detailed priority descriptions and color coding
+- July 13, 2025. Major improvements and bug fixes:
+  * Fixed auto reload functionality with Enter key press (avoiding form interruptions)
+  * Fixed ticket creation API calls and error handling for right-click ticket creation
+  * Enhanced auto reload behavior on login/logout with proper redirections
+  * Added priority-based background colors for calendar days with tickets (P1=red, P2=orange, P3=yellow, P4=green)
+  * Enhanced calendar with ticket indicators showing count and priority
+  * Extended Excel export to include comprehensive ticket information:
+    - Added "Tickets & Status" column to Schedule sheet
+    - Added dedicated "Tickets" sheet with full ticket details (IDs, priority, status, notes, creator)
+    - Improved data integrity with real-time ticket tracking across all dates
 - July 13, 2025. Successfully migrated from Replit Agent to Replit environment:
   * Fixed auto reload functionality with Enter key press (avoiding form interference)
   * Implemented auto reload on login/logout with proper redirects

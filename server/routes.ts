@@ -107,7 +107,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       scheduleData.push(['Weekend Duty Schedule - ' + month]);
       scheduleData.push(['Generated on: ' + new Date().toLocaleDateString()]);
       scheduleData.push(['']);
-      scheduleData.push(['Date', 'Assigned To', 'Day of Week']);
+      scheduleData.push(['Date', 'Assigned To', 'Day of Week', 'Tickets & Status']);
       
       // Get all weekend dates for the month
       const [year, monthNum] = month.split('-').map(Number);
@@ -122,7 +122,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const dateStr = date.toISOString().split('T')[0];
           const assignedTo = schedule.assignments[dateStr] || 'Unassigned';
           const dayName = dayOfWeek === 0 ? 'Sunday' : 'Saturday';
-          scheduleData.push([dateStr, assignedTo, dayName]);
+          
+          // Get tickets for this date
+          const tickets = await storage.getTickets(dateStr);
+          const ticketSummary = tickets.length > 0 
+            ? tickets.map(t => `${t.ticketIds.join(', ')} (${t.priority} - ${t.status})`).join('; ')
+            : 'No tickets';
+            
+          scheduleData.push([dateStr, assignedTo, dayName, ticketSummary]);
         }
       }
       
@@ -162,9 +169,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
         XLSX.utils.book_append_sheet(wb, conflictSheet, 'Conflicts');
       }
       
+      // Sheet 4: All Tickets for the Month
+      const ticketData = [];
+      ticketData.push(['All Tickets - ' + month]);
+      ticketData.push(['']);
+      ticketData.push(['Date', 'Ticket IDs', 'Priority', 'Status', 'Notes', 'Created By']);
+      
+      // Get all tickets for the month
+      for (let day = 1; day <= daysInMonth; day++) {
+        const date = new Date(year, monthNum - 1, day);
+        const dateStr = date.toISOString().split('T')[0];
+        const tickets = await storage.getTickets(dateStr);
+        
+        for (const ticket of tickets) {
+          ticketData.push([
+            dateStr,
+            ticket.ticketIds.join(', '),
+            ticket.priority,
+            ticket.status,
+            ticket.notes || 'No notes',
+            ticket.createdBy
+          ]);
+        }
+      }
+
       // Add sheets to workbook
       const scheduleSheet = XLSX.utils.aoa_to_sheet(scheduleData);
       const summarySheet = XLSX.utils.aoa_to_sheet(summaryData);
+      const ticketSheet = XLSX.utils.aoa_to_sheet(ticketData);
       
       // Style the headers
       const headerStyle = {
@@ -175,6 +207,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       XLSX.utils.book_append_sheet(wb, scheduleSheet, 'Schedule');
       XLSX.utils.book_append_sheet(wb, summarySheet, 'Summary');
+      XLSX.utils.book_append_sheet(wb, ticketSheet, 'Tickets');
       
       // Generate Excel file
       const excelBuffer = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
