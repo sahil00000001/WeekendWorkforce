@@ -48,6 +48,8 @@ export function TicketModal({ isOpen, onClose, date, currentUser }: TicketModalP
 
   const onSubmit = async (data: TicketFormData) => {
     try {
+      console.log('Form data:', data); // Debug log
+      
       const ticketIds = data.ticketIds.split(',').map(id => id.trim()).filter(Boolean);
       
       const ticketData = {
@@ -58,6 +60,8 @@ export function TicketModal({ isOpen, onClose, date, currentUser }: TicketModalP
         notes: data.notes || '',
         createdBy: currentUser,
       };
+
+      console.log('Ticket data to send:', ticketData); // Debug log
 
       if (editingTicket) {
         await updateTicket.mutateAsync({ 
@@ -70,18 +74,25 @@ export function TicketModal({ isOpen, onClose, date, currentUser }: TicketModalP
         });
         setEditingTicket(null);
       } else {
-        await createTicket.mutateAsync(ticketData);
+        const result = await createTicket.mutateAsync(ticketData);
+        console.log('Create ticket result:', result); // Debug log
         toast({
           title: 'Ticket created',
           description: 'New ticket has been added successfully.',
         });
       }
       
-      form.reset();
+      form.reset({
+        ticketIds: '',
+        priority: 'P3',
+        status: 'open',
+        notes: '',
+      });
     } catch (error) {
+      console.error('Ticket submission error:', error); // Debug log
       toast({
         title: 'Error',
-        description: 'Failed to save ticket. Please try again.',
+        description: `Failed to save ticket: ${error instanceof Error ? error.message : 'Unknown error'}`,
         variant: 'destructive',
       });
     }
@@ -183,7 +194,10 @@ export function TicketModal({ isOpen, onClose, date, currentUser }: TicketModalP
 
               <div>
                 <Label htmlFor="priority">Priority</Label>
-                <Select onValueChange={(value) => form.setValue('priority', value as 'P1' | 'P2' | 'P3' | 'P4')}>
+                <Select 
+                  value={form.watch('priority')} 
+                  onValueChange={(value) => form.setValue('priority', value as 'P1' | 'P2' | 'P3' | 'P4')}
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Select priority" />
                   </SelectTrigger>
@@ -198,7 +212,10 @@ export function TicketModal({ isOpen, onClose, date, currentUser }: TicketModalP
 
               <div>
                 <Label htmlFor="status">Status</Label>
-                <Select onValueChange={(value) => form.setValue('status', value as 'open' | 'in_progress' | 'resolved' | 'escalated')}>
+                <Select 
+                  value={form.watch('status')} 
+                  onValueChange={(value) => form.setValue('status', value as 'open' | 'in_progress' | 'resolved' | 'escalated')}
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Select status" />
                   </SelectTrigger>

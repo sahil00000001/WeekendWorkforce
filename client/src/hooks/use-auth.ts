@@ -67,6 +67,11 @@ export function useAuth() {
     localStorage.setItem("currentUser", userData.name);
     // Force a state update to trigger re-render
     setIsLoading(false);
+    
+    // Auto reload after successful login
+    setTimeout(() => {
+      window.location.reload();
+    }, 500);
   };
 
   const logout = () => {
@@ -78,6 +83,11 @@ export function useAuth() {
       title: "Logged Out",
       description: "You have been logged out successfully",
     });
+    
+    // Auto reload after logout to redirect to login page
+    setTimeout(() => {
+      window.location.reload();
+    }, 500);
   };
 
   return {

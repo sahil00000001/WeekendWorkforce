@@ -7,6 +7,7 @@ import { useAuth } from "@/hooks/use-auth";
 import Dashboard from "@/pages/dashboard";
 import Login from "@/pages/login";
 import NotFound from "@/pages/not-found";
+import { useEffect } from "react";
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -33,6 +34,33 @@ function Router() {
 }
 
 function App() {
+  // Add global Enter key listener for auto reload
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Enter') {
+        // Check if we're in a form or input element - don't reload in that case
+        const target = event.target as HTMLElement;
+        if (target && (
+          target.tagName === 'INPUT' || 
+          target.tagName === 'TEXTAREA' || 
+          target.tagName === 'SELECT' ||
+          target.getAttribute('role') === 'combobox' ||
+          target.closest('form')
+        )) {
+          return; // Don't reload when in forms
+        }
+
+        // Small delay to allow any form submissions to complete
+        setTimeout(() => {
+          window.location.reload();
+        }, 100);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>

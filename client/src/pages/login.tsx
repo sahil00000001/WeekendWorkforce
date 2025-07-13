@@ -47,6 +47,7 @@ export default function Login() {
           title: "Login successful",
           description: `Welcome back, ${data.user.name}!`,
         });
+        // Don't reload here since login() handles it
       } else {
         setError("Invalid access key. Please check your key and try again.");
       }

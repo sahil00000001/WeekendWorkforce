@@ -16,7 +16,6 @@ export function useTickets(date: string) {
       apiRequest('/api/tickets', {
         method: 'POST',
         body: JSON.stringify(ticket),
-        headers: { 'Content-Type': 'application/json' }
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/tickets', date] });
@@ -28,7 +27,6 @@ export function useTickets(date: string) {
       apiRequest(`/api/tickets/${id}`, {
         method: 'PUT',
         body: JSON.stringify(updates),
-        headers: { 'Content-Type': 'application/json' }
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/tickets', date] });
